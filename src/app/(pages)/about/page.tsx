@@ -1,9 +1,6 @@
-// app/pages/About.tsx
-
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Button } from "flowbite-react";
 import Header from "../../components/Header";
 import Footers from "../../components/Footers";
 import slide from "../../assets/about.svg";
@@ -55,9 +52,9 @@ const AboutPage: React.FC = () => {
           <p className="text-black mb-2 mt-8 text-center max-md:text-xs dark:text-white">
             We aim to provide a platform where students, graduates, and professionals can learn, build practical projects, and enhance their skills independently...
           </p>
-          <Button as={Link} href="/contact" className="max-w-xs my-10 ...">
+          <Link href="/contact" className="max-w-xs my-10 px-6 py-2 bg-blue-600 text-white rounded-lg text-center font-bold hover:bg-blue-700 transition">
             Contact
-          </Button>
+          </Link>
         </section>
       </main>
       <Footers />

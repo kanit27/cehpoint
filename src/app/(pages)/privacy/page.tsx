@@ -1,9 +1,6 @@
-// app/pages/Privacy.tsx
-
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Spinner } from "flowbite-react";
 import Header from "../../components/Header";
 import Footers from "../../components/Footers";
 import axiosInstance from "../../../lib/axios";
@@ -17,7 +14,7 @@ const PrivacyPage: React.FC = () => {
     const fetchPrivacyPolicy = async () => {
       try {
         setLoading(true);
-        const response = await axiosInstance.get("/privacy");
+        const response = await axiosInstance.get<{ content: string }>("/privacy");
         setPrivacyContent(response.data?.content || "");
         setError(null);
       } catch (err) {
@@ -34,7 +31,7 @@ const PrivacyPage: React.FC = () => {
     if (loading) {
       return (
         <div className="flex justify-center items-center p-10">
-          <Spinner size="lg" />
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
         </div>
       );
     }

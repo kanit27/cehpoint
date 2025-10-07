@@ -46,7 +46,7 @@ const MyProjectPage: React.FC = () => {
       try {
         // CORRECTED API CALL
         const response = await axiosInstance.get(`/api/projects?uid=${firebaseUId}`);
-        setProjects(response.data);
+        setProjects(response.data as Project[]);
       } catch (error) {
         console.error("Error fetching projects:", error);
         toast.error("Could not fetch your projects.");

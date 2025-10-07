@@ -9,9 +9,11 @@ import DarkLogo from "../assets/darkLogo.svg";
 import { company, websiteURL } from "../../lib/constants";
 import { useTheme } from "../../context/ThemeContext";
 
-interface FootersProps {}
+interface FootersProps {
+  className?: string;
+}
 
-const Footers: React.FC<FootersProps> = () => {
+const Footers: React.FC<FootersProps> = ({ className }) => {
   const { theme } = useTheme();
 
   return (

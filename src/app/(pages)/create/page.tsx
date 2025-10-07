@@ -85,7 +85,7 @@ const CreatePage: React.FC = () => {
         const prompt = `Generate a structured course outline for "${topic}" with a focus on these subtopics: ${subtopics.join(", ")}. The output must be a valid JSON object.`;
         
         const response = await axiosInstance.post('/api/prompt', { prompt });
-        const generatedText = response.data.generatedText;
+        const generatedText = (response.data as { generatedText: string }).generatedText;
         
         const cleanedJsonString = generatedText.replace(/```json/g, "").replace(/```/g, "").trim();
         const parsedJson = JSON.parse(cleanedJsonString);

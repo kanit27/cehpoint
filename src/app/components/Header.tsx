@@ -11,11 +11,20 @@ import DarkModeToggle from "../components/DarkModeToggle";
 import LogoComponent from "../components/LogoComponent";
 import { useTheme } from "../../context/ThemeContext";
 
-interface HeaderProps {
-  isHome: boolean;
+interface UserProfileResponse {
+  success: boolean;
+  userProfile: {
+    profile: string;
+    role: string;
+  };
 }
 
-const Header: React.FC<HeaderProps> = ({ isHome }) => {
+interface HeaderProps {
+  isHome: boolean;
+  className?: string;
+}
+
+const Header: React.FC<HeaderProps> = ({ isHome, className }) => {
   const router = useRouter();
   const { theme } = useTheme();
 
@@ -44,13 +53,15 @@ const Header: React.FC<HeaderProps> = ({ isHome }) => {
     }
   }, [isHome, router]);
 
+
   const fetchProfile = async (uid: string) => {
     try {
       const response = await axiosInstance.get(`/api/user/profile?uid=${uid}`);
-      if (response.data.success) {
-        setProfileImg(response.data.userProfile.profile);
-        setIsAdmin(response.data.userProfile.role === "admin");
-        sessionStorage.setItem("role", response.data.userProfile.role);
+      const data = response.data as UserProfileResponse;
+      if (data.success) {
+        setProfileImg(data.userProfile.profile);
+        setIsAdmin(data.userProfile.role === "admin");
+        sessionStorage.setItem("role", data.userProfile.role);
       }
     } catch (error) {
       console.error("Error fetching profile:", error);

@@ -72,8 +72,9 @@ const SignUpPage: React.FC = () => {
         unsplashApiKey: process.env.NEXT_PUBLIC_UNSPLASH_API_KEY,
       });
 
-      if (response.data.success) {
-        showToast(response.data.message);
+      const data = response.data as { success: boolean; message: string };
+      if (data.success) {
+        showToast(data.message);
         sessionStorage.setItem("email", email);
         sessionStorage.setItem("mName", mName);
         sessionStorage.setItem("auth", "true");
@@ -82,7 +83,7 @@ const SignUpPage: React.FC = () => {
         await sendEmail(email, mName);
         router.push("/home");
       } else {
-        showToast(response.data.message);
+        showToast(data.message);
       }
     } catch (error) {
       showToast("Signup failed. Please try again.");

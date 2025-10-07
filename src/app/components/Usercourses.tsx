@@ -37,7 +37,7 @@ const UserCourses: React.FC<UserCoursesProps> = ({ userId }) => {
     const fetchUserCourses = async () => {
       const postURL = `/api/courses?userId=${userId}`;
       try {
-        const response = await axiosInstance.get(postURL);
+        const response = await axiosInstance.get<Course[]>(postURL);
         setCourses(response.data);
       } catch (error) {
         console.error("Error fetching user courses:", error);

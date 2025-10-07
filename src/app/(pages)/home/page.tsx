@@ -22,7 +22,8 @@ const HomePage: React.FC = () => {
                     const postURL = `/api/courses?userId=${id}`;
                     const res = await axiosInstance.get(postURL);
                     // Store the number of courses created today
-                    sessionStorage.setItem("coursesCreatedToday", res.data.length.toString());
+                    const courses = res.data as any[]; // Type assertion to array
+                    sessionStorage.setItem("coursesCreatedToday", courses.length.toString());
                 } catch (error) {
                     console.error("Failed to fetch user courses:", error);
                 }

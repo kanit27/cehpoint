@@ -25,8 +25,9 @@ const ProfilePage: React.FC = () => {
             const fetchProfile = async () => {
                 try {
                     const response = await axiosInstance.get(`/api/user/profile?uid=${uid}`);
-                    if (response.data.success) {
-                        setProfileImg(response.data.userProfile.profile);
+                    const data = response.data as { success: boolean; userProfile: { profile: string } };
+                    if (data.success) {
+                        setProfileImg(data.userProfile.profile);
                     }
                 } catch (error) {
                     console.error("Error fetching profile:", error);
@@ -42,12 +43,13 @@ const ProfilePage: React.FC = () => {
         const uid = sessionStorage.getItem("uid");
         try {
             const response = await axiosInstance.post(`/api/profile`, { email, mName, password, uid });
-            if (response.data.success) {
+            const data = response.data as { success: boolean; message?: string };
+            if (data.success) {
                 toast.success("Profile updated successfully");
                 sessionStorage.setItem("email", email);
                 sessionStorage.setItem("mName", mName);
             } else {
-                toast.error(response.data.message);
+                toast.error(data.message);
             }
         } catch (error) {
             toast.error("An error occurred.");

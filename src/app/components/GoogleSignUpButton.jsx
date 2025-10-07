@@ -8,7 +8,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 
 // GoogleSignUpButton component
-const GoogleSignUpButton = ({ text }) => {
+const GoogleSignUpButton = ({ text, showToast }) => {
   const router = useRouter();
 
   const handleGoogleSignIn = async () => {

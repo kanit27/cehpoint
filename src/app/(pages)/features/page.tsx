@@ -1,9 +1,6 @@
-// app/pages/Features.tsx
-
 import React from 'react';
 import Header from '../../components/Header';
 import Footers from '../../components/Footers';
-import { Card } from 'flowbite-react';
 import { IoIosTimer } from "react-icons/io";
 import { BsSearch } from "react-icons/bs";
 import { PiVideo } from "react-icons/pi";
@@ -26,12 +23,15 @@ const cardData = {
     ]
 };
 
-const FeaturesPage: React.FC = () => {
-    // Custom theme for Flowbite Card
-    const cardTheme = { /* ... your custom style object ... */ };
+const Card: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+    <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md p-6 m-4 w-72 flex flex-col items-center">
+        {children}
+    </div>
+);
 
+const FeaturesPage: React.FC = () => {
     return (
-        <div className='h-screen flex flex-col'>
+        <div className='min-h-screen flex flex-col'>
             <Header isHome={false} />
             <main className='dark:bg-black flex-1'>
                 {/* Features Section */}
@@ -42,7 +42,7 @@ const FeaturesPage: React.FC = () => {
                     </p>
                     <div className='mt-16 flex flex-wrap items-center justify-center'>
                         {cardData.features.map((card) => (
-                            <Card key={card.id} theme={cardTheme}>
+                            <Card key={card.id}>
                                 <h5 className='text-xl font-black tracking-tight text-black dark:text-white'>
                                     {card.title}
                                 </h5>
@@ -56,7 +56,7 @@ const FeaturesPage: React.FC = () => {
                     <h1 className="text-4xl font-black max-md:text-2xl dark:text-white">Benefits</h1>
                     <div className='mt-16 flex flex-wrap items-center justify-center'>
                         {cardData.benefits.map((card) => (
-                            <Card key={card.id} theme={cardTheme}>
+                            <Card key={card.id}>
                                 <div className="text-xl max-md:text-lg dark:text-white">{card.icon}</div>
                                 <h5 className='text-xl font-black tracking-tight text-black dark:text-white'>
                                     {card.title}
@@ -71,7 +71,7 @@ const FeaturesPage: React.FC = () => {
                     <h1 className="text-4xl font-black max-md:text-2xl dark:text-white">How It Works</h1>
                      <div className='my-16 flex flex-wrap items-center justify-center'>
                         {cardData.howItWorks.map((card) => (
-                             <Card key={card.id} theme={cardTheme}>
+                             <Card key={card.id}>
                                  <p className='text-black dark:text-white'>{card.id}</p>
                                  <h5 className='text-xl font-black tracking-tight text-black dark:text-white'>
                                      {card.title}

@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import Header from "../../components/Header";
 import Footers from "../../components/Footers";
 import axiosInstance from "../../../lib/axios";
-import { Spinner } from "flowbite-react";
 
 const TermsPolicy = () => {
   const [termsContent, setTermsContent] = useState("");
@@ -15,7 +14,10 @@ const TermsPolicy = () => {
     const fetchTerms = async () => {
       try {
         setLoading(true);
-        const response = await axiosInstance.get("/terms");
+        interface TermsResponse {
+          content: string;
+        }
+        const response = await axiosInstance.get<TermsResponse>("/terms");
         if (response.data && response.data.content) {
           setTermsContent(response.data.content);
         } else {
@@ -36,7 +38,7 @@ const TermsPolicy = () => {
     if (loading) {
       return (
         <div className="flex justify-center items-center p-10">
-          <Spinner size="lg" />
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
         </div>
       );
     }

@@ -15,6 +15,11 @@ import GoogleSignUpButton from "../../components/GoogleSignUpButton";
 import axiosInstance from "../../../lib/axios";
 import img from "../../assets/signin.svg";
 
+interface SignInResponse {
+  success: boolean;
+  message: string;
+  userData: Record<string, string>;
+}
 const SignInPage: React.FC = () => {
   const auth = getAuth();
   const router = useRouter();
@@ -57,17 +62,20 @@ const SignInPage: React.FC = () => {
       const user = userCredential.user;
       const firebaseUid = user.uid;
 
+
       const res = await axiosInstance.post(`/signin`, { email, password, firebaseUid });
 
-      if (res.data.success) {
-        showToast(res.data.message);
-        Object.keys(res.data.userData).forEach(key => {
-          sessionStorage.setItem(key, res.data.userData[key] || '');
+      const data = res.data as SignInResponse;
+
+      if (data.success) {
+        showToast(data.message);
+        Object.keys(data.userData).forEach(key => {
+          sessionStorage.setItem(key, data.userData[key] || '');
         });
         sessionStorage.setItem("auth", "true");
         router.push("/home");
       } else {
-        showToast(res.data.message);
+        showToast(data.message);
       }
     } catch (error) {
       showToast("Sign-in failed. Please try again.");

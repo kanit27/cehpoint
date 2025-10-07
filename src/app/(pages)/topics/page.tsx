@@ -46,10 +46,14 @@ const TopicsPage: React.FC = () => {
                 lang: lang
             });
 
-            if(response.data.success){
+            const data = response.data as { success: boolean; courseId?: string };
+
+            if(data.success){
                 toast.success("Course generation started!");
-                sessionStorage.setItem("courseId", response.data.courseId);
-                router.push(`/course?mainTopic=${encodeURIComponent(mainTopic)}&courseId=${response.data.courseId}`);
+                if (data.courseId) {
+                    sessionStorage.setItem("courseId", data.courseId);
+                    router.push(`/course?mainTopic=${encodeURIComponent(mainTopic)}&courseId=${data.courseId}`);
+                }
             } else {
                  toast.error("Failed to start course generation.");
             }

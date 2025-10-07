@@ -8,6 +8,8 @@
     "start": "next start"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@react-oauth/google": "^0.12.2",
     "@types/mongoose": "^5.11.96",
     "axios": "^1.12.2",
     "firebase": "^12.3.0",
