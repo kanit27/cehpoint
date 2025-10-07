@@ -1,30 +1,19 @@
 'use client';
 
 import React from "react";
-import Image from 'next/image';
-
 import Logo from "../assets/logo.svg";
 import DarkLogo from "../assets/darkLogo.svg";
-import { useTheme } from '../../context/ThemeContext';
 
-interface ThemeContextType {
-  theme: boolean;
-  toggleTheme: () => void;
+interface LogoComponentProps {
+  isDarkMode?: boolean;
 }
 
-const LogoComponent: React.FC = () => {
-  const { theme } = useTheme() as ThemeContextType;
-
-  return (
-    <Image
-      alt="logo"
-      src={theme ? DarkLogo : Logo}
-      height={36}
-      width={120}
-      className="mr-3"
-      priority
-    />
-  );
-};
+const LogoComponent: React.FC<LogoComponentProps> = ({ isDarkMode }) => (
+  <img
+    src={isDarkMode ? DarkLogo : Logo}
+    alt="Logo"
+    className="h-8"
+  />
+);
 
 export default LogoComponent;
