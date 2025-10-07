@@ -1,7 +1,6 @@
-// app/(pages)/topics/page.tsx
 'use client';
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Header from "../../components/Header";
 import Footers from "../../components/Footers";
@@ -9,7 +8,7 @@ import axiosInstance from "../../../lib/axios";
 import { toast } from "react-toastify";
 import { AiOutlineLoading } from "react-icons/ai";
 
-const TopicsPage: React.FC = () => {
+const TopicsPageContent: React.FC = () => {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [jsonData, setJsonData] = useState<any>(null);
@@ -29,15 +28,10 @@ const TopicsPage: React.FC = () => {
 
     const handleGenerateCourse = async () => {
         setProcessing(true);
-        // This is a simplified version of your multi-step generation process
         try {
             const courseType = sessionStorage.getItem('courseType');
             const lang = sessionStorage.getItem('courseLang');
             const firstTopicTitle = jsonData[mainTopic][0].title;
-            
-            // Placeholder for your complex generation logic (sendVideo, sendPrompt, etc.)
-            // For now, we'll simulate a save and redirect
-            
             const response = await axiosInstance.post('/api/course', {
                 user: sessionStorage.getItem('uid'),
                 content: JSON.stringify(jsonData),
@@ -106,5 +100,11 @@ const TopicsPage: React.FC = () => {
         </div>
     );
 };
+
+const TopicsPage: React.FC = () => (
+    <Suspense fallback={<div>Loading...</div>}>
+        <TopicsPageContent />
+    </Suspense>
+);
 
 export default TopicsPage;
