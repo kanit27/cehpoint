@@ -10,7 +10,7 @@ import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 
 import { mainname, subname, websiteURL } from "../../../lib/constants";
 import DarkModeToggle from "../../components/DarkModeToggle";
-import LogoComponent from "../../components/LogoComponent";
+// import LogoComponent from "../../components/LogoComponent";
 import GoogleSignUpButton from "../../components/GoogleSignUpButton";
 import axiosInstance from "../../../lib/axios";
 import img from "../../assets/signin.svg";
@@ -93,7 +93,7 @@ const SignInPage: React.FC = () => {
           {/* Navbar */}
           <nav className="flex items-center justify-between p-8 dark:bg-black">
             <Link href={websiteURL} className="ml-1 flex items-center">
-              <LogoComponent isDarkMode={storedTheme} />
+              {/* <LogoComponent isDarkMode={storedTheme} /> */}
               <span className="self-center whitespace-nowrap text-2xl flex items-start justify-center flex-col font-black dark:text-white">
                 <h1 className="font-black">{mainname}</h1>
                 <em className="text-sm font-semibold">{subname}</em>

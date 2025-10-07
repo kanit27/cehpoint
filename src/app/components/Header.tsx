@@ -8,7 +8,7 @@ import { toast } from "react-toastify";
 import { mainname, subname } from "../../lib/constants";
 import axiosInstance from "../../lib/axios";
 import DarkModeToggle from "../components/DarkModeToggle";
-import LogoComponent from "../components/LogoComponent";
+// import LogoComponent from "../components/LogoComponent";
 import { useTheme } from "../../context/ThemeContext";
 
 interface UserProfileResponse {
@@ -79,7 +79,7 @@ const Header: React.FC<HeaderProps> = ({ isHome, className }) => {
       <div className="flex items-center gap-3">
         <Link href={isLoggedIn ? "/home" : "/"}>
           <span className="flex items-center gap-2">
-            <LogoComponent isDarkMode={theme} />
+            {/* <LogoComponent isDarkMode={theme} /> */}
             <span className="flex flex-col">
               <h1 className="font-black text-2xl dark:text-white">{mainname}</h1>
               <em className="text-sm font-semibold dark:text-white">{subname}</em>
