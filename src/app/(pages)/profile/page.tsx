@@ -8,8 +8,8 @@ import { toast } from "react-toastify";
 import { AiOutlineKey, AiOutlineLock, AiOutlineFileImage, AiOutlineYoutube, AiOutlineLoading } from "react-icons/ai";
 
 const ProfilePage: React.FC = () => {
-    const [mName, setName] = useState<string>(sessionStorage.getItem("mName") || "");
-    const [email, setEmail] = useState<string>(sessionStorage.getItem("email") || "");
+    const [mName, setName] = useState<string>("");
+    const [email, setEmail] = useState<string>("");
     const [profileImg, setProfileImg] = useState<string>(
         "https://firebasestorage.googleapis.com/v0/b/ai-based-training-platfo-ca895.appspot.com/o/user.png?alt=media&token=cdde4ad1-26e7-4edb-9f7b-a3172fbada8d"
     );
@@ -23,15 +23,15 @@ const ProfilePage: React.FC = () => {
     const [showYoutubeApiKeyForm, setShowYoutubeApiKeyForm] = useState(false);
 
     const [newApiKey, setNewApiKey] = useState("");
-    const [currentApiKey, setCurrentApiKey] = useState(sessionStorage.getItem("apiKey") || "");
+    const [currentApiKey, setCurrentApiKey] = useState("");
     const [showCurrentApiKey, setShowCurrentApiKey] = useState(false);
 
     const [newUnsplashApiKey, setNewUnsplashApiKey] = useState("");
-    const [currentUnsplashApiKey, setCurrentUnsplashApiKey] = useState(sessionStorage.getItem("currentUnsplashApiKey") || "");
+    const [currentUnsplashApiKey, setCurrentUnsplashApiKey] = useState("");
     const [showCurrentUnsplashApiKey, setShowCurrentUnsplashApiKey] = useState(false);
 
     const [newYoutubeApiKey, setNewYoutubeApiKey] = useState("");
-    const [currentYoutubeApiKey, setCurrentYoutubeApiKey] = useState(sessionStorage.getItem("currentYoutubeApiKey") || "");
+    const [currentYoutubeApiKey, setCurrentYoutubeApiKey] = useState("");
     const [showCurrentYoutubeApiKey, setShowCurrentYoutubeApiKey] = useState(false);
 
     const showToast = (msg: string) => {
@@ -48,9 +48,15 @@ const ProfilePage: React.FC = () => {
     };
 
     useEffect(() => {
+        // Only runs in browser
+        const mName = sessionStorage.getItem("mName") || "";
+        const email = sessionStorage.getItem("email") || "";
         const uid = sessionStorage.getItem("uid");
-        setName(sessionStorage.getItem("mName") || "");
-        setEmail(sessionStorage.getItem("email") || "");
+        setName(mName);
+        setEmail(email);
+        setCurrentApiKey(sessionStorage.getItem("apiKey") || "");
+        setCurrentUnsplashApiKey(sessionStorage.getItem("currentUnsplashApiKey") || "");
+        setCurrentYoutubeApiKey(sessionStorage.getItem("currentYoutubeApiKey") || "");
         if (uid) {
             const fetchProfile = async () => {
                 try {
