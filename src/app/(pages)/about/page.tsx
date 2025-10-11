@@ -1,63 +1,91 @@
 import React from "react";
 import Image from "next/image";
-import Link from "next/link";
 import Header from "../../components/Header";
 import Footers from "../../components/Footers";
 import slide from "../../assets/about.svg";
 import { company, name as appName } from "../../../lib/constants";
+import Link from "next/link";
 
 const AboutPage: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header isHome={false} />
-      <main className="dark:bg-black flex-1">
-        <section className="flex-1 flex flex-col items-center justify-center px-3 py-14">
-          <h1 className="text-6xl font-black max-md:text-3xl dark:text-white">
+    <div className="h-screen flex flex-col">
+      <Header isHome={false} className="sticky top-0 z-50" />
+      <div className="dark:bg-black flex-1">
+        <div className="flex-1 flex flex-col items-center justify-center px-3">
+          <h1 className="text-6xl font-black mt-14 max-md:text-3xl dark:text-white">
             About
           </h1>
           <p className="text-center text-black mt-6 max-w-2xl font-medium max-md:text-xs dark:text-white">
             Welcome to {appName}, the cutting-edge AI Course generator brought to you by {company}!
           </p>
-        </section>
-
-        <section className="px-7 max-md:px-3 justify-center items-center pb-10 dark:bg-black">
+        </div>
+        <div className="px-7 max-md:px-3 justify-center items-center pb-10 dark:bg-black mt-14 ">
           <div className="flex flex-col md:flex-row items-center">
-            <div className="md:w-1/2 h-full p-4 flex flex-col md:items-start justify-center">
+            <div className="md:w-1/2 h-full p-4 flex flex-col items-center md:items-start justify-center">
               <h2 className="text-4xl font-black mb-2 max-md:text-2xl dark:text-white">
                 About Us
               </h2>
               <p className="text-black mb-2 mt-2 max-md:text-center max-md:text-xs dark:text-white">
-                At {company}, we believe in the transformative power of education and the endless possibilities that Artificial Intelligence unlocks...
+                At {company}, we believe in the transformative power of
+                education and the endless possibilities that Artificial
+                Intelligence unlocks. That's why we've developed {appName}, a
+                revolutionary SaaS product designed to make course creation
+                seamless, efficient, and intelligent.
               </p>
             </div>
             <div className="md:w-1/2 h-full">
-              <Image src={slide} alt="About us illustration" className="w-full h-full object-cover" />
+              <Image
+                src={slide}
+                alt="About us illustration"
+                className="w-full h-full object-cover"
+                priority
+              />
             </div>
           </div>
-        </section>
-
-        <section className="flex-1 flex flex-col items-center justify-center px-20 max-md:px-3 py-14">
-          <h1 className="text-center text-4xl font-black max-md:text-2xl dark:text-white">
+        </div>
+        <div className="flex-1 flex flex-col items-center justify-center px-20 max-md:px-3">
+          <h1 className="text-center text-4xl font-black mt-14 max-md:text-2xl dark:text-white">
             Our Mission
           </h1>
           <p className="text-black mb-2 mt-8 text-center max-md:text-xs dark:text-white">
-            Our mission is to empower college students and graduates with essential skills through project-based learning...
+            CEH Point is an AI-driven learning platform designed to help
+            individuals from any domain generate courses, engage in
+            self-learning, complete projects, and earn certifications by
+            answering quizzes. Upon earning a certification, learners are
+            offered a two-month internship, followed by further training and job
+            opportunities. Our mission is to empower college students and
+            graduates with essential skills through project-based learning,
+            hands-on assessments, and personalized training that bridge the gap
+            between education and employment. By leveraging cutting-edge tools,
+            we aim to prepare individuals for the tech-driven job market,
+            fostering a generation of professionals ready to excel in their
+            careers and become an integral part of our company and team.
           </p>
-        </section>
-
-        <section className="flex-1 flex flex-col items-center justify-center px-20 max-md:px-3 py-14">
-          <h1 className="text-center text-4xl font-black max-md:text-2xl dark:text-white">
+        </div>
+        <div className="flex-1 flex flex-col items-center justify-center px-20 max-md:px-3">
+          <h1 className="text-center text-4xl font-black mt-20 max-md:text-2xl dark:text-white">
             Join Us on the Learning Journey
           </h1>
           <p className="text-black mb-2 mt-8 text-center max-md:text-xs dark:text-white">
-            We aim to provide a platform where students, graduates, and professionals can learn, build practical projects, and enhance their skills independently...
+            We aim to provide a platform where students, graduates, and
+            professionals can learn, build practical projects, and enhance their
+            skills independently. After earning a certification, our company
+            offers a two-month unpaid internship with mentorship and support.
+            Upon successful completion of the internship, candidates will
+            undergo a four-month training program with a stipend. Those who
+            complete the training will have the opportunity for full-time
+            employment with us, creating a remarkable journey from fresher to
+            skilled employee.
           </p>
-          <Link href="/contact" className="max-w-xs my-10 px-6 py-2 bg-blue-600 text-white rounded-lg text-center font-bold hover:bg-blue-700 transition">
+          <Link
+            href="/contact"
+            className="max-w-xs my-10 items-center justify-center text-center border-2 border-black dark:border-white dark:bg-black dark:text-white bg-white text-black font-bold rounded-none w-full px-6 py-2 hover:bg-gray-100 dark:hover:bg-gray-900 transition"
+          >
             Contact
           </Link>
-        </section>
-      </main>
-      <Footers />
+        </div>
+      </div>
+      <Footers className="sticky bottom-0 z-50" />
     </div>
   );
 };

@@ -1,6 +1,7 @@
 'use client';
 
 import React from "react";
+import Image from "next/image";
 import Logo from "../assets/logo.svg";
 import DarkLogo from "../assets/darkLogo.svg";
 
@@ -9,10 +10,12 @@ interface LogoComponentProps {
 }
 
 const LogoComponent: React.FC<LogoComponentProps> = ({ isDarkMode }) => (
-  <img
+  <Image
     src={isDarkMode ? DarkLogo : Logo}
     alt="Logo"
-    className="h-8"
+    height={32}
+    className="h-8 w-auto"
+    priority
   />
 );
 

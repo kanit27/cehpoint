@@ -2,46 +2,54 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '../../../../lib/db';
 import User from '../../../../lib/models/User';
-// IMPORTANT: You'll need to set up Firebase Admin SDK to verify the token
-// import { admin } from '@/lib/firebase-admin'; 
+import jwt from 'jsonwebtoken';
+import { cookies } from 'next/headers';
 
 export async function POST(req: NextRequest) {
   await connectDB();
 
   try {
-    const { name, email, uid, googleProfileImage, apiKey } = await req.json();
+    const { name, email, uid, googleProfileImage } = await req.json();
+    let user = await User.findOne({ email });
+    let message = "SignIn successful";
+    let status = 200;
 
-    // In a real app, you MUST verify the token from the client
-    // const decodedToken = await admin.auth().verifyIdToken(token);
-    // if (decodedToken.email !== email) {
-    //   throw new Error("Token does not match user email");
-    // }
-
-    const existingUser = await User.findOne({ email });
-
-    if (existingUser) {
-      return NextResponse.json({
-        success: true,
-        message: "SignIn successful",
-        userData: existingUser.toObject(),
-      }, { status: 200 });
+    // If the user doesn't exist, create a new one
+    if (!user) {
+      user = new User({
+        email,
+        mName: name,
+        uid,
+        profile: googleProfileImage,
+        verified: true, // Google sign-in implies a verified email
+      });
+      await user.save();
+      message = "Account created successfully";
+      status = 201;
     }
 
-    const newUser = new User({
-      email,
-      mName: name,
-      uid,
-      profile: googleProfileImage,
-      apiKey,
-    });
+    // Generate JWT Token
+    const token = jwt.sign(
+      { userId: user._id, uid: user.uid },
+      process.env.JWT_SECRET || 'your_default_secret',
+      { expiresIn: '30d' }
+    );
 
-    await newUser.save();
+    // Set JWT cookie
+    const cookieStore = await cookies();
+    cookieStore.set('jwt', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 30 * 24 * 60 * 60, // 30 days in seconds
+      path: '/',
+    });
 
     return NextResponse.json({
       success: true,
-      message: "Account created successfully",
-      userData: newUser.toObject(),
-    }, { status: 201 });
+      message: message,
+      userData: user.toObject(),
+    }, { status: status });
 
   } catch (error) {
     console.error("Google Auth error:", error);

@@ -70,14 +70,8 @@ const UserCourses: React.FC<UserCoursesProps> = ({ userId }) => {
       sessionStorage.setItem("lang", lang ? lang : "English");
       sessionStorage.setItem("jsonData", JSON.stringify(jsonData));
 
-      // In Next.js, we pass state differently. A common way is to use query parameters.
-      router.push(
-        `/course?mainTopic=${encodeURIComponent(
-          mainTopic.toUpperCase()
-        )}&type=${type.toLowerCase()}&courseId=${courseId}&end=${
-          completed ? end : ""
-        }`
-      );
+      // FIX: Use dynamic route for courseId
+      router.push(`/course/${courseId}`);
     } catch (error) {
       console.error("Failed to parse course content:", error);
       // Optionally, show a user-facing error message here
