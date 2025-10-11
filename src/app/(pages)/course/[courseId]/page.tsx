@@ -79,16 +79,18 @@ const CoursePage = () => {
         setIsGenerating(true);
         try {
             const response = await axiosInstance.post(`/api/courses/generate-content`, { courseId, topicTitle, subtopicTitle });
-            if (response.data.success) {
-                const updatedCourse = response.data.course;
+            // Fix: assert the response type
+            const data = response.data as { success: boolean; course?: any; message?: string };
+
+            if (data.success) {
+                const updatedCourse = data.course;
                 const parsedContent = JSON.parse(updatedCourse.content);
                 setCourseData({ ...updatedCourse, content: parsedContent });
-                toast.success("Content generated!");
             } else {
-                toast.error(response.data.message || "Failed to generate content.");
+                toast.error(data.message || "Failed to generate content.");
             }
-        } catch (error: any) {
-            toast.error(error.response?.data?.message || "Failed to generate content.");
+        } catch (error) {
+            toast.error("Failed to generate content.");
         } finally {
             setIsGenerating(false);
         }
