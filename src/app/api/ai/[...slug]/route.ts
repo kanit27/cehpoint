@@ -13,8 +13,9 @@ const safetySettings = [
   // ... other safety settings
 ];
 
-export async function POST(req: NextRequest, { params }: { params: { slug: string[] } }) {
-    const slug = params.slug.join('/');
+export async function POST(req: NextRequest, context: { params: Promise<{ slug: string[] }> }) {
+    const { slug } = await context.params;
+    const slugStr = slug.join('/');
     const body = await req.json();
 
     try {
@@ -28,18 +29,18 @@ export async function POST(req: NextRequest, { params }: { params: { slug: strin
             model = genAI.getGenerativeModel({ model: "gemini-2.0-flash", safetySettings });
         }
 
-        if (slug === 'prompt') {
+        if (slugStr === 'prompt') {
             const result = await model.generateContent(prompt);
             return NextResponse.json({ generatedText: result.response.text() });
         }
 
-        if (slug === 'generate') {
+        if (slugStr === 'generate') {
             const result = await model.generateContent(prompt);
             const htmlContent = converter.makeHtml(result.response.text());
             return NextResponse.json({ text: htmlContent });
         }
         
-        if (slug === 'yt') {
+        if (slugStr === 'yt') {
             const results = await youtubesearchapi.GetListByKeyword(prompt, false, 5, [{ type: "video" }]);
             if (results.items.length === 0) return NextResponse.json({ url: '' });
 
@@ -53,7 +54,7 @@ export async function POST(req: NextRequest, { params }: { params: { slug: strin
         return NextResponse.json({ message: "Not Found" }, { status: 404 });
 
     } catch (error: any) {
-        console.error(`Error in /api/ai/${slug}:`, error);
+        console.error(`Error in /api/ai/${slugStr}:`, error);
         return NextResponse.json({ message: "Internal Server Error", error: error.message }, { status: 500 });
     }
 }
