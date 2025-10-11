@@ -144,11 +144,13 @@ Please output the list in the following valid JSON format strictly in English, w
 
     try {
       const response = await axiosInstance.post("/api/ai/prompt", { prompt });
-      const generatedText = response.data.generatedText;
-      const cleanedJsonString = generatedText
-        .replace(/```json/g, "")
-        .replace(/```/g, "")
-        .trim();
+      const data = response.data as { generatedText: string };
+
+  const generatedText = data.generatedText;
+  const cleanedJsonString = generatedText
+    .replace(/```json/g, "")
+    .replace(/```/g, "")
+    .trim();
 
       try {
         const parsedJson = JSON.parse(cleanedJsonString);

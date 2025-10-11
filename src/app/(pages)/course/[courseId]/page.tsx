@@ -21,7 +21,6 @@ import ChatDrawer from '@/app/components/course/ChatDrawer';
 const QuizView = ({ courseTitle }: { courseTitle: string }) => <div className="p-8 text-center">Quiz for {courseTitle} will be shown here.</div>;
 const ProjectsView = ({ courseTitle }: { courseTitle: string }) => <div className="p-8 text-center">Projects for {courseTitle} will be shown here.</div>;
 
-
 const CoursePage = () => {
     const router = useRouter();
     const params = useParams();
@@ -34,7 +33,7 @@ const CoursePage = () => {
     const [content, setContent] = useState<{ theory: string; youtube: string; image?: string; aiExplanation?: string; }>({ theory: '', youtube: '' });
     const [loading, setLoading] = useState(true);
     const [isGenerating, setIsGenerating] = useState(false);
-    
+
     // UI State
     const [view, setView] = useState<'content' | 'quiz' | 'projects'>('content');
     const [isChatOpen, setIsChatOpen] = useState(false);
@@ -95,7 +94,7 @@ const CoursePage = () => {
             setIsGenerating(false);
         }
     }, [courseId]);
-    
+
     // Fetch initial course data
     useEffect(() => {
         if (courseId) {
@@ -103,7 +102,9 @@ const CoursePage = () => {
                 setLoading(true);
                 try {
                     const response = await axiosInstance.get(`/api/courses/${courseId}`);
-                    const data = response.data;
+                    // Fix: assert the response type
+                    const data = response.data as { content: string; mainTopic: string; [key: string]: any };
+
                     const parsedContent = JSON.parse(data.content);
                     setCourseData({ ...data, content: parsedContent });
 
@@ -158,21 +159,23 @@ const CoursePage = () => {
 
         try {
             const response = await axiosInstance.post('/api/ai/chat', { prompt: userMessage.text });
-            const botMessage = { text: response.data.text, sender: 'bot' as const };
+            // Fix: assert the response type
+            const data = response.data as { text: string };
+            const botMessage = { text: data.text, sender: 'bot' as const };
             setMessages(prev => [...prev, botMessage]);
         } catch (error) {
             const errorMessage = { text: "Sorry, I couldn't get a response. Please try again.", sender: 'bot' as const };
             setMessages(prev => [...prev, errorMessage]);
         }
     };
-    
+
     if (loading || !courseData) {
         return <div className="flex justify-center items-center h-screen dark:bg-black"><AiOutlineLoading className="h-12 w-12 animate-spin text-black dark:text-white" /></div>;
     }
 
     const mainTopicKey = courseData.mainTopic.toLowerCase();
     const topics = courseData.content[mainTopicKey];
-    
+
     return (
         <div className="flex flex-col min-h-screen">
             <Header isHome={true} />
@@ -185,8 +188,7 @@ const CoursePage = () => {
                     onShowProjects={() => setView('projects')}
                     activeSubtopic={view === 'content' ? activeTopic?.subtopicTitle || null : null}
                 />
-                
-                {/* UPDATED: Removed overflow-y-auto from here */}
+
                 <main className="flex-1 p-6">
                     <div className="flex justify-between items-center mb-4">
                         <h1 className="text-2xl font-bold capitalize text-black dark:text-white">
