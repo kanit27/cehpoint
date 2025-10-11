@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     );
 
     // Set JWT cookie
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     cookieStore.set('jwt', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

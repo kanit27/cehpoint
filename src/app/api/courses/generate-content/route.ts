@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
         const parsedContent = JSON.parse(updatedCourse.content);
         setCourseData({ ...updatedCourse, content: parsedContent });
     } else {
-        toast.error(data.message || "Failed to generate content.");
+        console.error(data.message || "Failed to generate content.");
     }
 
     return NextResponse.json({ success: true, course });
@@ -87,4 +87,8 @@ export async function POST(req: NextRequest) {
     console.error("Overall error in generate-content:", error);
     return NextResponse.json({ success: false, message: "An error occurred while generating content" }, { status: 500 });
   }
+}
+
+function setCourseData(arg0: any) {
+  throw new Error('Function not implemented.');
 }

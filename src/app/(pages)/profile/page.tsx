@@ -101,14 +101,15 @@ const ProfilePage: React.FC = () => {
         const uid = sessionStorage.getItem("uid");
         try {
             const response = await axiosInstance.post(`/api/profile`, { email, mName, apiKey: newApiKey, uid });
-            if (response.data.success) {
+            const data = response.data as { success: boolean; message?: string };
+            if (data.success) {
                 setCurrentApiKey(newApiKey);
                 sessionStorage.setItem("apiKey", newApiKey);
-                showToast(response.data.message || "API Key updated");
+                showToast(data.message || "API Key updated");
                 setNewApiKey("");
                 setShowApiKeyForm(false);
             } else {
-                showToast(response.data.message || "Error updating API Key");
+                showToast(data.message || "Error updating API Key");
             }
         } catch (error) {
             showToast("Internal Server Error");
@@ -128,14 +129,15 @@ const ProfilePage: React.FC = () => {
         const uid = sessionStorage.getItem("uid");
         try {
             const response = await axiosInstance.post(`/api/profile`, { email, mName, unsplashApiKey: newUnsplashApiKey, uid });
-            if (response.data.success) {
+            const data = response.data as { success: boolean; message?: string };
+            if (data.success) {
                 setCurrentUnsplashApiKey(newUnsplashApiKey);
                 sessionStorage.setItem("currentUnsplashApiKey", newUnsplashApiKey);
-                showToast(response.data.message || "Unsplash API Key updated");
+                showToast(data.message || "Unsplash API Key updated");
                 setNewUnsplashApiKey("");
                 setShowUnsplashApiKeyForm(false);
             } else {
-                showToast(response.data.message || "Error updating Unsplash API Key");
+                showToast(data.message || "Error updating Unsplash API Key");
             }
         } catch (error) {
             showToast("Internal Server Error");
@@ -155,14 +157,15 @@ const ProfilePage: React.FC = () => {
         const uid = sessionStorage.getItem("uid");
         try {
             const response = await axiosInstance.post(`/api/profile`, { email, mName, youtubeApiKey: newYoutubeApiKey, uid });
-            if (response.data.success) {
+            const data = response.data as { success: boolean; message?: string };
+            if (data.success) {
                 setCurrentYoutubeApiKey(newYoutubeApiKey);
                 sessionStorage.setItem("currentYoutubeApiKey", newYoutubeApiKey);
-                showToast(response.data.message || "YouTube API Key updated");
+                showToast(data.message || "YouTube API Key updated");
                 setNewYoutubeApiKey("");
                 setShowYoutubeApiKeyForm(false);
             } else {
-                showToast(response.data.message || "Error updating YouTube API Key");
+                showToast(data.message || "Error updating YouTube API Key");
             }
         } catch (error) {
             showToast("Internal Server Error");

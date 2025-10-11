@@ -53,7 +53,7 @@ const PerformancePage: React.FC = () => {
   const fetchPerformance = async () => {
     if (!userUID) return;
     try {
-      const response = await axiosInstance.get(`/api/performance/${userUID}`);
+      const response = await axiosInstance.get<{ success: boolean; data: PerformanceData }>(`/api/performance/${userUID}`);
       const performanceData = response?.data?.data;
 
       if (response?.data?.success && performanceData) {

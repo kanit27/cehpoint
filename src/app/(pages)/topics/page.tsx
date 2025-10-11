@@ -38,11 +38,14 @@ const TopicsPage: React.FC = () => {
             };
             
             const response = await axiosInstance.post('/api/courses/create', courseData);
+            const data = response.data as { success: boolean; courseId?: string };
 
-            if (response.data.success) {
+            if (data.success) {
                 toast.success("Course saved! You can now view it.");
-                sessionStorage.setItem("courseId", response.data.courseId);
-                router.push(`/course/${response.data.courseId}`);
+                if (data.courseId) {
+                    sessionStorage.setItem("courseId", data.courseId);
+                    router.push(`/course/${data.courseId}`);
+                }
             } else {
                 toast.error("Failed to save the course structure.");
             }
