@@ -1,4 +1,3 @@
-// src/app/components/MarkdownRenderer.tsx
 'use client';
 
 import React from 'react';
@@ -15,7 +14,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
     <div className="prose dark:prose-invert max-w-none">
       <ReactMarkdown
         components={{
-          code({ node, inline, className, children, ...props }) {
+          code({ inline, className, children, ...props }: { inline?: boolean; className?: string; children: React.ReactNode }) {
             const match = /language-(\w+)/.exec(className || '');
             return !inline && match ? (
               <SyntaxHighlighter
