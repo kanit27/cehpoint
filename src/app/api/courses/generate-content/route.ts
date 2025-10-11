@@ -68,27 +68,10 @@ export async function POST(req: NextRequest) {
     course.content = JSON.stringify(content);
     await course.save();
 
-    // New code block for notifying the client
-    const axiosInstance = axios.create({ baseURL: process.env.BASE_URL });
-    const response = await axiosInstance.post(`/api/courses/generate-content`, { courseId, topicTitle, subtopicTitle });
-    // Fix: assert the response type
-    const data = response.data as { success: boolean; course?: any; message?: string };
-
-    if (data.success) {
-        const updatedCourse = data.course;
-        const parsedContent = JSON.parse(updatedCourse.content);
-        setCourseData({ ...updatedCourse, content: parsedContent });
-    } else {
-        console.error(data.message || "Failed to generate content.");
-    }
-
+    // Return the updated course object directly
     return NextResponse.json({ success: true, course });
   } catch (error: any) {
     console.error("Overall error in generate-content:", error);
     return NextResponse.json({ success: false, message: "An error occurred while generating content" }, { status: 500 });
   }
-}
-
-function setCourseData(arg0: any) {
-  throw new Error('Function not implemented.');
 }
