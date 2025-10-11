@@ -14,7 +14,7 @@ import { IoChatbubbleEllipses } from "react-icons/io5";
 // Import the new custom components
 import CourseSidebar from '@/app/components/course/CourseSidebar';
 import CircularProgressBar from '@/app/components/course/CircularProgressBar';
-import MarkdownRenderer from '@/app/components/MarkdownRenderer';
+// import MarkdownRenderer from '@/app/components/MarkdownRenderer';
 import ChatDrawer from '@/app/components/course/ChatDrawer';
 
 // Placeholders for Quiz and Projects components
@@ -217,7 +217,7 @@ const CoursePage = () => {
                                             <img src={content.image} alt={activeTopic.subtopicTitle} className="w-full h-auto max-h-[500px] object-contain rounded-lg" />
                                         </div>
                                     )}
-                                    <MarkdownRenderer content={content.theory || ''} />
+                                    {/* <MarkdownRenderer content={content.theory || ''} /> */}
                                 </div>
                             )}
                             {view === 'quiz' && <QuizView courseTitle={courseData.mainTopic} />}

@@ -14,9 +14,10 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
     <div className="prose dark:prose-invert max-w-none">
       <ReactMarkdown
         components={{
-          code({ inline, className, children, ...props }: { inline?: boolean; className?: string; children: React.ReactNode }) {
+          code(props) {
+            const { children, className, node } = props as any;
             const match = /language-(\w+)/.exec(className || '');
-            return !inline && match ? (
+            return !props.inline && match ? (
               <SyntaxHighlighter
                 style={atomDark}
                 language={match[1]}
