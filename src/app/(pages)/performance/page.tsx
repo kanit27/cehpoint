@@ -301,11 +301,9 @@ const PerformancePage: React.FC = () => {
                 if (!value) return "fill-gray-300";
                 return value.count > 0 ? "fill-green-500" : "fill-gray-300";
               }}
-              tooltipDataAttrs={(value) => ({
-                "data-tip": value
-                  ? `Date: ${value.date} | Count: ${value.count}`
-                  : "No data",
-              })}
+              tooltipDataAttrs={(value) => {
+                return { 'data-tip': value ? `Date: ${value.date} | Count: ${value.count}` : 'No data' } as any;
+              }}
             />
           </div>
         </div>
