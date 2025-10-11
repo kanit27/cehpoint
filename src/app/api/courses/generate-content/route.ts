@@ -5,6 +5,7 @@ import Course from '@/lib/models/Course';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import youtubesearchapi from 'youtube-search-api';
 import { compareTwoStrings } from 'string-similarity';
+import axios from 'axios';
 
 // Note: We no longer need showdown here
 const genAI = new GoogleGenerativeAI(process.env.API_KEY || "");
@@ -66,6 +67,20 @@ export async function POST(req: NextRequest) {
     subtopic.done = true;
     course.content = JSON.stringify(content);
     await course.save();
+
+    // New code block for notifying the client
+    const axiosInstance = axios.create({ baseURL: process.env.BASE_URL });
+    const response = await axiosInstance.post(`/api/courses/generate-content`, { courseId, topicTitle, subtopicTitle });
+    // Fix: assert the response type
+    const data = response.data as { success: boolean; course?: any; message?: string };
+
+    if (data.success) {
+        const updatedCourse = data.course;
+        const parsedContent = JSON.parse(updatedCourse.content);
+        setCourseData({ ...updatedCourse, content: parsedContent });
+    } else {
+        toast.error(data.message || "Failed to generate content.");
+    }
 
     return NextResponse.json({ success: true, course });
   } catch (error: any) {
