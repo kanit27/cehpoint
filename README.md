@@ -6,7 +6,7 @@ Cehpoint is a full-stack, AI-powered learning platform built with Next.js 15+, T
 
 ## 🚀 Live Demo
 
-**Try it now:** [https://cehpoint.vercel.app](https://cehpoint.vercel.app)
+**Try it now:** [(https://cehpoint-2sgj-3jm9nejvm-kanits-projects.vercel.app/)]
 
 ---
 
