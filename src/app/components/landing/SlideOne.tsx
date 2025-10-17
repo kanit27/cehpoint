@@ -9,7 +9,7 @@ import slide from "../../assets/slideOneNew.png";
 const SlideOne: React.FC = () => {
   return (
     <div className="flex flex-col items-center dark:bg-black pt-0 pb-5 md:pt-10 md:pb-20">
-      <h1 className="text-4xl max-md:text-2xl font-black text-center mt-20 max-xl:px-4 dark:text-white">
+      <h1 className="text-4xl max-md:text-2xl font-black text-center mt-10 max-xl:px-4 dark:text-white">
         AI Learning Made Effortless: Earn Certifications, Land Your Dream Job,
         and Stay Ahead!
       </h1>

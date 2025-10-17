@@ -8,8 +8,9 @@ import { toast } from "react-toastify";
 import { mainname, subname, websiteURL } from "../../lib/constants";
 import axiosInstance from "../../lib/axios";
 import DarkModeToggle from "./DarkModeToggle";
-// import LogoComponent from "./LogoComponent";
+import LogoComponent from "./LogoComponent";
 import { useTheme } from "../../context/ThemeContext";
+import { AiOutlineMenu } from "react-icons/ai";
 
 interface UserProfileResponse {
   success: boolean;
@@ -141,7 +142,7 @@ const Header: React.FC<HeaderProps> = ({ isHome = false, className }) => {
       <div className="flex items-center gap-3">
         <Link href={isLoggedIn ? "/home" : "/"}>
           <span className="flex items-center gap-2 cursor-pointer">
-            {/* <LogoComponent isDarkMode={theme} /> */}
+            <LogoComponent isDarkMode={theme} />
             <span className="flex flex-col">
               <h1 className="font-black text-2xl dark:text-white">{mainname}</h1>
               <em className="text-sm font-semibold dark:text-white">{subname}</em>
@@ -235,7 +236,7 @@ const Header: React.FC<HeaderProps> = ({ isHome = false, className }) => {
           className="md:hidden flex items-center px-2 py-1 border rounded"
           onClick={() => setMenuOpen((prev) => !prev)}
         >
-          <span className="material-icons">menu</span>
+          <AiOutlineMenu />
         </button>
       </div>
       {menuOpen && (

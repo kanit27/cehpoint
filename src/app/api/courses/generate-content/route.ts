@@ -43,18 +43,36 @@ export async function POST(req: NextRequest) {
     }
     
     // --- 2. Generate Theory with the NEW Markdown-focused prompt ---
-    try {
+    try { 
       const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-      const prompt = `You are an expert instructor. Your task is to provide a comprehensive and detailed explanation for the subtopic "${subtopicTitle}", which is part of a larger course on "${topicTitle}".
+      const prompt = `You are an expert instructor and senior developer creating a lesson for a course.
+      Your task is to provide a comprehensive, clear, and easy-to-follow explanation for the subtopic: "${subtopicTitle}", which is part of the larger topic: "${topicTitle}".
 
-      Your response MUST be formatted in clear, well-structured Markdown.
-      - Use headings (##) for main sections and subheadings (###) for smaller parts.
-      - Use backticks (\`) for inline code like package names or commands.
-      - Use triple backticks with a language identifier (e.g., \`\`\`bash or \`\`\`jsx) for all code blocks.
-      - Use bold text (**) to emphasize key terms.
-      - Ensure the explanation is at least 300 words long.
+      Your response MUST be formatted in well-structured Markdown and follow this exact lesson plan:
 
-      Do not include a main title; start directly with the content.`;
+      1.  **Introduction (## What is ${subtopicTitle}?)**
+          * Start with a brief, high-level overview.
+          * Use a simple analogy to explain the core concept to a beginner.
+
+      2.  **Importance (## Why is it Important?)**
+          * Explain the problem this concept solves or why a developer should learn it.
+          * Provide 2-3 key benefits in a bulleted list.
+
+      3.  **Core Concepts / How it Works (## Core Concepts)**
+          * Break down the topic into its most important parts.
+          * Use '###' subheadings for each distinct part.
+          * Use **bold text** to highlight key terminology.
+          * Use backticks (\`) for inline code, package names, or commands (e.g., \`firebase auth\`).
+
+      4.  **Practical Code Example (## Practical Code Example)**
+          * Provide a clear, concise, and well-commented code block.
+          * Use triple backticks with the correct language identifier (e.g., \`\`\`javascript or \`\`\`jsx).
+          * Follow the code block with a brief explanation of what the code is doing.
+
+      5.  **Key Takeaways (## Key Takeaways)**
+          * Summarize the most critical points of the lesson in a bulleted list. This should be a quick review for the student.
+
+      CRITICAL: Do not include a main title for the entire document. The first line of your response must be the "## What is..." heading. Ensure the total length is at least 400 words to provide sufficient detail.`;
 
       const theoryResult = await model.generateContent(prompt);
       // We now save the raw markdown text directly

@@ -22,6 +22,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        {/* Add responsive viewport for mobile rendering */}
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        {/* ...existing head content... */}
+      </head>
       <body className={inter.className}>
         <ThemeProvider>
           <SkillsProvider>

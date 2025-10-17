@@ -1,5 +1,3 @@
-// components/landing/Slider.tsx
-
 "use client";
 
 import React, { useState, useRef } from "react";
@@ -7,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import urls from "../../assets/pictures"; // Assuming this path is correct
+import urls from "../../assets/pictures";
 import Image from "next/image";
 
 const CustomSlider: React.FC = () => {
@@ -36,42 +34,47 @@ const CustomSlider: React.FC = () => {
     slidesToScroll: 1,
     autoplay: true,
     autoplaySpeed: 2000,
+    adaptiveHeight: true,
+    pauseOnHover: false,
+    pauseOnFocus: false,
+    swipeToSlide: true,
+    touchMove: true,
+    draggable: true,
     afterChange: (index: number) => setCurrentIndex(index),
   };
 
   return (
-    <div className="">
-      <div className="relative overflow-hidden w-full h-96 bg-white dark:bg-black transition-colors duration-500">
+    <div className="w-full">
+      <div className="relative overflow-hidden w-full bg-white dark:bg-black transition-colors duration-500">
         <Slider {...settings} ref={sliderRef}>
           {urls.map((url, index: number) => (
-            <div key={index} className="relative w-full h-96">
-                {/* ... your mobile view JSX ... */}
-                <div className="hidden sm:flex w-full h-full">
-                  <div className="w-full sm:w-1/4 p-4 sm:p-8 flex flex-col justify-center items-center">
-                    <p className="mb-6 px-4 text-lg sm:text-2xl sm:px-0 font-bold text-black dark:text-white text-center">
-                      {text[index]}
-                    </p>
-                    <button
-                      className="px-3 py-1 sm:px-4 sm:py-2 rounded-md hover:bg-opacity-80 transition duration-300 bg-black text-white dark:bg-white dark:text-black text-sm sm:text-base"
-                      onClick={handleClick}
-                    >
-                      {buttons[index]}
-                    </button>
-                  </div>
-                  <div className="relative w-full sm:w-3/4 h-full">
-                    <Image
-                      src={url}
-                      alt={`Slide ${index}`}
-                      fill
-                      style={{ objectFit: 'cover' }}
-                      priority={index === 0} // Prioritize loading the first image
-                    />
-                  </div>
-                </div>
+            <div key={index} className="w-full flex flex-col items-stretch">
+              {/* Image (keeps original aspect by using object-cover and responsive heights) */}
+              <div className="relative w-full h-96 sm:h-96">
+                <Image
+                  src={url}
+                  alt={`Slide ${index}`}
+                  fill
+                  className="object-cover"
+                  priority={index === 0}
+                />
+              </div>
+
+              {/* Text block below the image - slides together with the image */}
+              <div className="px-6 py-6 bg-white dark:bg-black text-center flex flex-col items-center gap-4">
+                <p className="text-lg sm:text-2xl font-bold text-black dark:text-white">
+                  {text[index]}
+                </p>
+                <button
+                  onClick={handleClick}
+                  className="px-4 py-2 bg-black text-white rounded-md hover:opacity-90 transition"
+                >
+                  {buttons[index]}
+                </button>
+              </div>
             </div>
           ))}
         </Slider>
-        {/* ... your next/prev buttons ... */}
       </div>
     </div>
   );

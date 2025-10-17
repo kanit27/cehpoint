@@ -13,7 +13,7 @@ import SlideSix from "../../components/landing/SlideSix";
 const Landing = () => {
   return (
     <>
-      <Header isHome={false} />
+      <Header isHome={false} className="sticky top-0 z-50" />
        <Slider />
       <SlideOne />
       <SlideTwo />

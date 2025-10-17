@@ -1,11 +1,10 @@
-// components/Footers.tsx
-
 "use client";
 
 import React from "react";
 import Link from "next/link";
-import Logo from "../assets/logo.svg";
-import DarkLogo from "../assets/darkLogo.svg";
+import Image from "next/image";
+import LogoUrl from "../assets/logo.svg";
+import DarkLogoUrl from "../assets/darkLogo.svg";
 import { company, websiteURL } from "../../lib/constants";
 import { useTheme } from "../../context/ThemeContext";
 
@@ -15,16 +14,13 @@ interface FootersProps {
 
 const Footers: React.FC<FootersProps> = ({ className }) => {
   const { theme } = useTheme();
+  const logoSrc = theme ? DarkLogoUrl : LogoUrl;
 
   return (
     <footer className="shadow-none rounded-none dark:bg-black w-full text-center">
-      <div className="w-full flex items-center justify-between py-4">
+      <div className="w-full flex items-center justify-between py-4 px-4 md:px-8">
         <a href={websiteURL} className="flex items-center justify-center">
-          <img
-            src={theme ? DarkLogo : Logo}
-            alt="Logo"
-            className="h-8"
-          />
+          <Image src={logoSrc} alt="Logo" width={38} height={32} className="object-contain" priority />
         </a>
         <div className="text-xs flex items-start justify-end -mt-3 font-semibold">
           <span className="flex items-start max-sm:flex-col justify-center gap-y-2">

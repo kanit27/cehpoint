@@ -14,35 +14,36 @@ const SlideTwo: React.FC = () => {
             Unleash Limitless Learning: Fuel Your Mind, Shape Your Future!
           </h2>
           <p className="text-black mb-2 mt-2 max-md:text-center max-md:text-xs dark:text-white text-center">
-            Effortlessly Craft Engaging and Impactful Courses with Our Platform...
+            Effortlessly Craft Engaging and Impactful Courses with Our
+            Platform...
           </p>
           {/* ... Rest of the text and icons JSX ... */}
-           <div className="flex flex-row justify mt-4 w-[90%]">
+          <div className="flex flex-row justify mt-4 w-[90%]">
             <div className="w-1/2 mb-2 md:mb-0  mx-2 max-md:text-center flex flex-row">
-              <div className="max-md:flex max-md:justify-center max-md:items-center pr-2">
-                <PiStudentFill className="text-2xl max-md:text-xl dark:text-white" />
-              </div>
               <div>
+                <div className="max-md:flex max-md:justify-center max-md:items-center pr-2">
+                  <PiStudentFill className="text-2xl text-center max-md:text-xl dark:text-white" />
+                </div>
                 <h3 className="text-xl font-bold mb-2 max-md:text-xl dark:text-white">
                   Study Online
                 </h3>
-                <p className="text-black max-md:text-xs dark:text-white">
+                {/* <p className="text-black max-md:text-xs dark:text-white">
                   Video & Theory Lecture
-                </p>
+                </p> */}
               </div>
             </div>
 
             <div className="w-1/2 mb-2 md:mb-0 mx-2 max-md:text-center flex flex-row">
-              <div className="max-md:flex max-md:justify-center max-md:items-center pr-2">
-                <PiFeatherFill className="text-2xl max-md:text-xl dark:text-white" />
-              </div>
               <div>
+                <div className="max-md:flex max-md:justify-center max-md:items-center pr-2">
+                  <PiFeatherFill className="text-2xl max-md:text-xl dark:text-white" />
+                </div>
                 <h3 className="text-xl font-bold mb-2 max-md:text-xl dark:text-white">
                   Create Course
                 </h3>
-                <p className="text-black max-md:text-xs dark:text-white">
+                {/* <p className="text-black max-md:text-xs dark:text-white">
                   Create Course on Any Topic
-                </p>
+                </p> */}
               </div>
             </div>
           </div>

@@ -39,7 +39,7 @@ const CircularProgressBar: React.FC<CircularProgressBarProps> = ({ percentage, i
           style={{ transform: 'rotate(-90deg)', transformOrigin: '50% 50%' }}
         />
       </svg>
-      <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-xs font-bold">
+      <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[10px] font-bold">
         {`${percentage}%`}
       </span>
     </div>
