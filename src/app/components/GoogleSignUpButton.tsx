@@ -9,7 +9,21 @@ import { toast } from 'react-toastify';
 
 interface GoogleSignUpButtonProps {
   text: string;
-  showToast?: boolean;
+  showToast?: (msg: string) => void;
+}
+
+interface UserData {
+  uid?: string;
+  email?: string;
+  mName?: string;
+  type?: string;
+  [key: string]: any;
+}
+
+interface GoogleAuthResponse {
+  success: boolean;
+  message?: string;
+  userData?: UserData;
 }
 
 const GoogleSignUpButton: React.FC<GoogleSignUpButtonProps> = ({ text, showToast }) => {
@@ -21,27 +35,14 @@ const GoogleSignUpButton: React.FC<GoogleSignUpButtonProps> = ({ text, showToast
       const user = result.user;
 
       const emailFromGoogle = user.providerData[0]?.email || user.email;
-
       if (!emailFromGoogle) {
-        toast.error("Unable to retrieve email from Google.");
+        const msg = "Unable to retrieve email from Google.";
+        showToast ? showToast(msg) : toast.error(msg);
         return;
       }
 
       const token = await user.getIdToken();
-
       const postURL = `/api/auth/google`;
-
-      interface GoogleAuthResponse {
-        success: boolean;
-        message: string;
-        userData?: {
-          email?: string;
-          mName?: string;
-          uid?: string;
-          type?: string;
-          [key: string]: any;
-        };
-      }
 
       const res = await axios.post<GoogleAuthResponse>(postURL, {
         token,
@@ -51,26 +52,26 @@ const GoogleSignUpButton: React.FC<GoogleSignUpButtonProps> = ({ text, showToast
         uid: user.uid,
       });
 
-      const data = res.data;
+      if (res.data.success) {
+        const successMsg = res.data.message || "Signed in successfully.";
+        showToast ? showToast(successMsg) : toast.success(successMsg);
 
-      if (data?.success) {
-        const userData = data.userData || {};
-
-        sessionStorage.setItem('user', JSON.stringify(userData));
-        if (userData.email) sessionStorage.setItem('email', userData.email);
-        if (userData.mName) sessionStorage.setItem('mName', userData.mName);
+        sessionStorage.setItem('user', JSON.stringify(res.data.userData));
+        sessionStorage.setItem('email', res.data.userData?.email || '');
+        sessionStorage.setItem('mName', res.data.userData?.mName || '');
         sessionStorage.setItem('auth', 'true');
-        if (userData.uid) sessionStorage.setItem('uid', userData.uid);
-        if (userData.type) sessionStorage.setItem('type', userData.type);
+        sessionStorage.setItem('uid', res.data.userData?.uid || '');
+        sessionStorage.setItem('type', res.data.userData?.type || '');
 
-        toast.success(data.message);
         router.push('/home');
       } else {
-        toast.error(data?.message || 'Authentication failed.');
+        const errMsg = res.data.message || "Google sign-in failed.";
+        showToast ? showToast(errMsg) : toast.error(errMsg);
       }
     } catch (error) {
       console.error('Google Sign-In Error:', error);
-      toast.error('An error occurred during Google Sign-In. Please try again.');
+      const errMsg = 'An error occurred during Google Sign-In. Please try again.';
+      showToast ? showToast(errMsg) : toast.error(errMsg);
     }
   };
 
