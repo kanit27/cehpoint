@@ -3,21 +3,23 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { signInWithPopup } from 'firebase/auth';
-import { auth, googleProvider } from '../../lib/firebase'; // Corrected relative path
+import { auth, googleProvider } from '../../lib/firebase';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
-// GoogleSignUpButton component
-const GoogleSignUpButton = ({ text, showToast }) => {
+interface GoogleSignUpButtonProps {
+  text: string;
+  showToast?: boolean;
+}
+
+const GoogleSignUpButton: React.FC<GoogleSignUpButtonProps> = ({ text, showToast }) => {
   const router = useRouter();
 
   const handleGoogleSignIn = async () => {
     try {
-      // Perform sign-in with Google using the Firebase SDK
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
 
-      // Safely get the email from the user's provider data
       const emailFromGoogle = user.providerData[0]?.email || user.email;
 
       if (!emailFromGoogle) {
@@ -25,14 +27,23 @@ const GoogleSignUpButton = ({ text, showToast }) => {
         return;
       }
 
-      // Get the Firebase ID token for backend verification
       const token = await user.getIdToken();
 
-      // Define the API endpoint within our Next.js app
-      const postURL = `/api/auth/google`; 
+      const postURL = `/api/auth/google`;
 
-      // Send the token and user info to our backend API route
-      const res = await axios.post(postURL, {
+      interface GoogleAuthResponse {
+        success: boolean;
+        message: string;
+        userData?: {
+          email?: string;
+          mName?: string;
+          uid?: string;
+          type?: string;
+          [key: string]: any;
+        };
+      }
+
+      const res = await axios.post<GoogleAuthResponse>(postURL, {
         token,
         name: user.displayName,
         email: emailFromGoogle,
@@ -40,20 +51,22 @@ const GoogleSignUpButton = ({ text, showToast }) => {
         uid: user.uid,
       });
 
-      // Handle the response from our backend
-      if (res.data.success) {
-        // Store user session info in sessionStorage
-        sessionStorage.setItem('user', JSON.stringify(res.data.userData));
-        sessionStorage.setItem('email', res.data.userData.email);
-        sessionStorage.setItem('mName', res.data.userData.mName);
+      const data = res.data;
+
+      if (data?.success) {
+        const userData = data.userData || {};
+
+        sessionStorage.setItem('user', JSON.stringify(userData));
+        if (userData.email) sessionStorage.setItem('email', userData.email);
+        if (userData.mName) sessionStorage.setItem('mName', userData.mName);
         sessionStorage.setItem('auth', 'true');
-        sessionStorage.setItem('uid', res.data.userData.uid);
-        sessionStorage.setItem('type', res.data.userData.type);
-        
-        toast.success(res.data.message);
-        router.push('/home'); // Navigate to the home page on success
+        if (userData.uid) sessionStorage.setItem('uid', userData.uid);
+        if (userData.type) sessionStorage.setItem('type', userData.type);
+
+        toast.success(data.message);
+        router.push('/home');
       } else {
-        toast.error(res.data.message);
+        toast.error(data?.message || 'Authentication failed.');
       }
     } catch (error) {
       console.error('Google Sign-In Error:', error);
