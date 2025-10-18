@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-// import Header from "../../../components/Header";
 import Footers from "../../../components/Footers";
 import axiosInstance from "../../../../lib/axios";
 import { toast } from "react-toastify";
@@ -16,13 +15,11 @@ import {
   IoClose,
 } from "react-icons/io5";
 
-// Import the new custom components
 import CourseSidebar from "@/app/components/course/CourseSidebar";
 import CircularProgressBar from "@/app/components/course/CircularProgressBar";
 import MarkdownRenderer from "@/app/components/course/MarkdownRenderer";
 import ChatDrawer from "@/app/components/course/ChatDrawer";
 
-// Placeholders for Quiz and Projects components
 const QuizView = ({ courseTitle }: { courseTitle: string }) => (
   <div className="p-8 text-center">Quiz for {courseTitle} will be shown here.</div>
 );
@@ -36,7 +33,6 @@ const CoursePage = () => {
   const { courseId } = params;
   const [theme, setTheme] = useState(false);
 
-  // Page State
   const [courseData, setCourseData] = useState<any>(null);
   const [activeTopic, setActiveTopic] = useState<{
     topicTitle: string;
@@ -51,18 +47,13 @@ const CoursePage = () => {
   const [loading, setLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // UI State
   const [view, setView] = useState<"content" | "quiz" | "projects">("content");
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // mobile menu
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Progress State
   const [percentage, setPercentage] = useState(0);
 
-  // Chat State
-  const [messages, setMessages] = useState<{ text: string; sender: "bot" | "user" }[]>(
-    []
-  );
+  const [messages, setMessages] = useState<{ text: string; sender: "bot" | "user" }[]>([]);
   const [newMessage, setNewMessage] = useState("");
 
   useEffect(() => {
@@ -70,19 +61,6 @@ const CoursePage = () => {
       typeof window !== "undefined" &&
       sessionStorage.getItem("darkMode") === "true";
     setTheme(darkMode);
-  }, []);
-
-  // Ensure mobile viewport meta exists as a fallback
-  useEffect(() => {
-    if (typeof document !== "undefined") {
-      const existing = document.querySelector('meta[name="viewport"]');
-      if (!existing) {
-        const meta = document.createElement("meta");
-        meta.name = "viewport";
-        meta.content = "width=device-width, initial-scale=1";
-        document.head.appendChild(meta);
-      }
-    }
   }, []);
 
   const updateProgress = useCallback(() => {
@@ -93,9 +71,7 @@ const CoursePage = () => {
 
     courseData.content[mainTopicKey]?.forEach((topic: any) => {
       topic.subtopics.forEach((subtopic: any) => {
-        if (subtopic.done) {
-          doneCount++;
-        }
+        if (subtopic.done) doneCount++;
         totalTopics++;
       });
     });
@@ -105,8 +81,6 @@ const CoursePage = () => {
     setPercentage(completionPercentage);
   }, [courseData]);
 
-  // GENERATE CONTENT helper
-  // options.silent = true -> do not set global isGenerating (no overlay)
   const generateContentForSubtopic = useCallback(
     async (topicTitle: string, subtopicTitle: string, options?: { silent?: boolean }) => {
       if (!options?.silent) setIsGenerating(true);
@@ -124,19 +98,11 @@ const CoursePage = () => {
           setCourseData({ ...updatedCourse, content: parsedContent });
           return { success: true, course: { ...updatedCourse, content: parsedContent } };
         } else {
-          if (!options?.silent) {
-            toast.error(data.message || "Failed to generate content.");
-          } else {
-            toast.error(data.message || "Failed to generate content.");
-          }
+          toast.error(data.message || "Failed to generate content.");
           return { success: false };
         }
-      } catch (error) {
-        if (!options?.silent) {
-          toast.error("Failed to generate content.");
-        } else {
-          toast.error("Failed to generate content.");
-        }
+      } catch {
+        toast.error("Failed to generate content.");
         return { success: false };
       } finally {
         if (!options?.silent) setIsGenerating(false);
@@ -145,14 +111,11 @@ const CoursePage = () => {
     [courseId]
   );
 
-  // Handle user click on sidebar subtopic
   const handleSelectSubtopic = useCallback(
     async (topicTitle: string, subtopicTitle: string) => {
-      // close mobile sidebar when selecting
       if (typeof window !== "undefined" && window.innerWidth < 768) {
         setIsSidebarOpen(false);
       }
-
       if (!courseData) return;
 
       const mainTopicKey = courseData.mainTopic.toLowerCase();
@@ -190,7 +153,6 @@ const CoursePage = () => {
     [courseData, generateContentForSubtopic]
   );
 
-  // Fetch initial course data
   useEffect(() => {
     if (courseId) {
       const fetchCourse = async () => {
@@ -198,7 +160,6 @@ const CoursePage = () => {
         try {
           const response = await axiosInstance.get(`/api/courses/${courseId}`);
           const data = response.data as { content: string; mainTopic: string; [key: string]: any };
-
           const parsedContent = JSON.parse(data.content);
           setCourseData({ ...data, content: parsedContent });
 
@@ -208,7 +169,7 @@ const CoursePage = () => {
             const firstSubtopic = firstTopic.subtopics[0];
             setActiveTopic({ topicTitle: firstTopic.title, subtopicTitle: firstSubtopic.title });
           }
-        } catch (error) {
+        } catch {
           toast.error("Failed to load course data.");
           router.push("/home");
         } finally {
@@ -217,10 +178,8 @@ const CoursePage = () => {
       };
       fetchCourse();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseId]);
 
-  // Update content when activeTopic changes or courseData is updated
   useEffect(() => {
     if (courseData && activeTopic) {
       const mainTopicKey = courseData.mainTopic.toLowerCase();
@@ -236,7 +195,6 @@ const CoursePage = () => {
     }
   }, [courseData, activeTopic, generateContentForSubtopic, updateProgress]);
 
-  // Chat Logic
   useEffect(() => {
     if (courseData?.mainTopic) {
       const defaultMessage = {
@@ -260,13 +218,12 @@ const CoursePage = () => {
       const data = response.data as { text: string };
       const botMessage = { text: data.text, sender: "bot" as const };
       setMessages((prev) => [...prev, botMessage]);
-    } catch (error) {
+    } catch {
       const errorMessage = { text: "Sorry, I couldn't get a response. Please try again.", sender: "bot" as const };
       setMessages((prev) => [...prev, errorMessage]);
     }
   };
 
-  // NAVIGATION: next / previous subtopic
   const navigateSubtopic = useCallback(
     async (direction: "next" | "prev") => {
       if (!courseData || !activeTopic) return;
@@ -348,43 +305,10 @@ const CoursePage = () => {
   const topics = courseData.content[mainTopicKey];
 
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* <Header isHome={true} /> */}
-      <div className="flex-1 flex dark:bg-gray-900 border-b-[1px] border-gray-300 dark:border-gray-700">
-        {/* Mobile menu overlay + off-canvas sidebar (only shown when toggled) */}
-        {isSidebarOpen && (
-          <div className="fixed inset-0 z-40 md:hidden" aria-hidden={!isSidebarOpen} onClick={() => setIsSidebarOpen(false)}>
-            <div className="absolute inset-0 bg-black/50" />
-          </div>
-        )}
-
-        {isSidebarOpen && (
-          <aside className="fixed inset-y-0 left-0 z-50 w-80 bg-white dark:bg-gray-900 shadow-lg md:hidden">
-            <div className="overflow-y-auto h-full">
-              <CourseSidebar
-                topics={topics}
-                mainTopic={courseData.mainTopic}
-                onSelectSubtopic={(t, s) => {
-                  setIsSidebarOpen(false);
-                  handleSelectSubtopic(t, s);
-                }}
-                onShowQuiz={() => {
-                  setView("quiz");
-                  setIsSidebarOpen(false);
-                }}
-                onShowProjects={() => {
-                  setView("projects");
-                  setIsSidebarOpen(false);
-                }}
-                activeSubtopic={view === "content" ? activeTopic?.subtopicTitle || null : null}
-                showOnMobile={true} // enable mobile rendering
-              />
-            </div>
-          </aside>
-        )}
-
-        {/* render desktop sidebar only on md+; mobile uses isSidebarOpen aside */}
-        <div className="hidden md:block">
+    <div className="flex flex-col min-h-screen bg-white dark:bg-gray-900">
+      <div className="flex flex-1 overflow-hidden">
+        {/* Desktop Sidebar (Sticky full height) */}
+        <aside className="hidden md:flex md:flex-col md:w-80 md:fixed md:top-0 md:left-0 md:h-screen md:overflow-y-auto  bg-white dark:bg-gray-900 z-40">
           <CourseSidebar
             topics={topics}
             mainTopic={courseData.mainTopic}
@@ -393,80 +317,149 @@ const CoursePage = () => {
             onShowProjects={() => setView("projects")}
             activeSubtopic={view === "content" ? activeTopic?.subtopicTitle || null : null}
           />
+        </aside>
+
+        {/* Mobile Sidebar */}
+        <div
+          className={`fixed inset-0 z-60 md:hidden transition-transform duration-300 ease-in-out ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="absolute inset-0 bg-black/10" onClick={() => setIsSidebarOpen(false)} />
+          <div className="relative w-full h-full bg-white dark:bg-black shadow-lg overflow-auto">
+            <button
+              onClick={() => setIsSidebarOpen(false)}
+              aria-label="Close menu"
+              className="absolute top-3 right-3 z-50 p-2 rounded-md text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+            >
+              <IoClose size={22} />
+            </button>
+            <CourseSidebar
+              topics={topics}
+              mainTopic={courseData.mainTopic}
+              onSelectSubtopic={handleSelectSubtopic}
+              onShowQuiz={() => {
+                setView("quiz");
+                setIsSidebarOpen(false);
+              }}
+              onShowProjects={() => {
+                setView("projects");
+                setIsSidebarOpen(false);
+              }}
+              activeSubtopic={view === "content" ? activeTopic?.subtopicTitle || null : null}
+              showOnMobile={true}
+            />
+          </div>
         </div>
 
-        <main className="flex-1">
-          <div className="sticky top-0 z-40 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700">
-            <div className="justify-between mx-auto flex gap-4 px-4 sm:px-6 md:px-8 py-4 items-center">
-              <div className="flex items-center gap-4">
-                {/* Mobile menu button */}
-                <button onClick={() => setIsSidebarOpen(true)} className="md:hidden text-black dark:text-white mr-1" aria-label="Open topics menu">
-                  <IoMenu size={24} />
+        {/* Main Content (with sticky header) */}
+        <main className="flex-1 flex flex-col md:ml-80 overflow-y-auto">
+          {/* Sticky Header */}
+          <div className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between gap-4 px-4 sm:px-6 py-3">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setIsSidebarOpen(true)}
+                  className="md:hidden p-1 -ml-1 text-black dark:text-white"
+                  aria-label="Open topics menu"
+                >
+                  <IoMenu size={26} />
                 </button>
-
                 <CircularProgressBar percentage={percentage} isDarkMode={theme} />
-                <h1 className="text-lg sm:text-xl md:text-3xl font-bold capitalize text-black dark:text-white truncate">
+                <h1 className="text-lg sm:text-xl font-bold capitalize text-black dark:text-white truncate">
                   {courseData.mainTopic}
                 </h1>
               </div>
             </div>
           </div>
 
-          {isGenerating ? (
-            <div className="flex justify-center items-center h-full p-6 overflow-y-auto no-scrollbar">
-              <AiOutlineLoading className="h-12 w-12 animate-spin text-black dark:text-white" />
-              <p className="ml-4 text-black dark:text-white">Generating content, please wait...</p>
-            </div>
-          ) : (
-            <>
-              {view === "content" && activeTopic && (
-                <div className="px-4 sm:px-6 md:px-8 py-4 max-w-4xl mx-auto overflow-y-auto no-scrollbar">
-                  <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 text-black dark:text-white">
-                    {activeTopic.subtopicTitle}
-                  </h2>
+          {/* Scrollable Content */}
+          <div className="flex-1 overflow-y-auto">
+            {isGenerating ? (
+              <div className="flex flex-col justify-center items-center h-full p-6 text-center">
+                <AiOutlineLoading className="h-12 w-12 animate-spin text-black dark:text-white" />
+                <p className="mt-4 text-black dark:text-white">Generating content, please wait...</p>
+              </div>
+            ) : (
+              <>
+                {view === "content" && activeTopic && (
+                  <div className="px-4 sm:px-6 md:px-8 py-6 max-w-4xl mx-auto">
+                    <h2 className="text-2xl sm:text-3xl font-bold mb-4 text-black dark:text-white">
+                      {activeTopic.subtopicTitle}
+                    </h2>
 
-                  {content.youtube && (
-                    <div className="mb-6 rounded-lg overflow-hidden aspect-video">
-                      <YouTube videoId={content.youtube} className="w-full h-full" />
+                    {content.youtube && (
+                      <div className="my-6 rounded-lg overflow-hidden aspect-video shadow-lg">
+                        <YouTube
+                          videoId={content.youtube}
+                          className="w-full h-full"
+                          opts={{ width: "100%", height: "100%" }}
+                        />
+                      </div>
+                    )}
+
+                    {content.image && !content.youtube && (
+                      <div className="my-6">
+                        <img
+                          src={content.image}
+                          alt={activeTopic.subtopicTitle}
+                          className="w-full h-auto max-h-[500px] object-contain rounded-lg"
+                        />
+                      </div>
+                    )}
+
+                    <MarkdownRenderer
+                      content={content.theory || "No theory available for this topic yet."}
+                    />
+
+                    <div className="mt-8 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
+                      <button
+                        onClick={() => navigateSubtopic("prev")}
+                        className="flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-sm font-medium transition w-full sm:w-auto"
+                        aria-label="Previous topic"
+                      >
+                        <IoChevronBackOutline size={16} />
+                        <span>Previous</span>
+                      </button>
+
+                      <button
+                        onClick={() => navigateSubtopic("next")}
+                        className="flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium transition w-full sm:w-auto"
+                        aria-label="Next topic"
+                      >
+                        <span>Next</span>
+                        <IoChevronForwardOutline size={16} />
+                      </button>
                     </div>
-                  )}
-
-                  {content.image && !content.youtube && (
-                    <div className="mb-6">
-                      <img src={content.image} alt={activeTopic.subtopicTitle} className="w-full h-auto max-h-[60vh] sm:max-h-[45vh] md:max-h-[500px] object-contain rounded-lg" />
-                    </div>
-                  )}
-
-                  <MarkdownRenderer content={content.theory || ""} />
-
-                  {/* NEXT / PREV buttons at end of content */}
-                  <div className="mt-6 flex justify-between items-center">
-                    <button onClick={() => navigateSubtopic("prev")} className="flex items-center gap-2 px-3 py-2 rounded-md bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-sm font-medium" aria-label="Previous topic">
-                      <IoChevronBackOutline size={16} />
-                      <span>Previous</span>
-                    </button>
-
-                    <button onClick={() => navigateSubtopic("next")} className="flex items-center gap-2 px-3 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium" aria-label="Next topic">
-                      <span>Next</span>
-                      <IoChevronForwardOutline size={16} />
-                    </button>
                   </div>
-                </div>
-              )}
-              {view === "quiz" && <QuizView courseTitle={courseData.mainTopic} />}
-              {view === "projects" && <ProjectsView courseTitle={courseData.mainTopic} />}
-            </>
-          )}
+                )}
+
+                {view === "quiz" && <QuizView courseTitle={courseData.mainTopic} />}
+                {view === "projects" && <ProjectsView courseTitle={courseData.mainTopic} />}
+              </>
+            )}
+          </div>
         </main>
-
-        <button onClick={() => setIsChatOpen(true)} className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-blue-600 text-white rounded-full flex justify-center items-center shadow-lg hover:bg-blue-700 transition" aria-label="Open chat">
-          <IoChatbubbleEllipses size={30} />
-        </button>
-
-        <ChatDrawer isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} messages={messages} newMessage={newMessage} setNewMessage={setNewMessage} sendMessage={sendMessage} mainTopic={courseData.mainTopic} />
       </div>
 
-      <Footers />
+      {/* Floating Chat Bubble */}
+      <button
+        onClick={() => setIsChatOpen(true)}
+        className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-blue-600 text-white rounded-full flex justify-center items-center shadow-lg hover:bg-blue-700 transition"
+        aria-label="Open chat"
+      >
+        <IoChatbubbleEllipses size={28} />
+      </button>
+
+      <ChatDrawer
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        messages={messages}
+        newMessage={newMessage}
+        setNewMessage={setNewMessage}
+        sendMessage={sendMessage}
+        mainTopic={courseData.mainTopic}
+      />
     </div>
   );
 };
