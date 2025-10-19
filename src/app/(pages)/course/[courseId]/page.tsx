@@ -28,7 +28,9 @@ import Projects from "@/app/components/course/Projects"; // Import the new Proje
 const CoursePage = () => {
   const router = useRouter();
   const params = useParams();
-  const { courseId } = params;
+ // normalize courseId (useParams returns ParamValue which can be string | string[] | undefined)
+ const rawCourseId = params?.courseId;
+ const courseId = Array.isArray(rawCourseId) ? rawCourseId[0] : rawCourseId ?? undefined;
   const [theme, setTheme] = useState(false);
 
   const [courseData, setCourseData] = useState<any>(null);
@@ -441,8 +443,8 @@ const CoursePage = () => {
                   </div>
                 )}
 
-                {view === "quiz" && userId && <Quiz courseTitle={courseData.mainTopic} courseId={courseId} userId={userId} />}
-                        {view === "projects" && <Projects courseTitle={courseData.mainTopic} />}
+{view === "quiz" && userId && courseId && <Quiz courseTitle={courseData.mainTopic} courseId={courseId} userId={userId} />}                        {view === "projects" && <Projects courseTitle={courseData.mainTopic} />}
+              {view === "projects" && <Projects courseTitle={courseData.mainTopic} />}
               </>
             )}
           </div>
