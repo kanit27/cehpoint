@@ -4,10 +4,10 @@ import connectDB from "../../../../lib/db";
 import Project from "../../../../lib/models/Project";
 
 // PUT to update a project
-export async function PUT(req: NextRequest, { params }: { params: { projectId: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ projectId: string }> }) {
   await connectDB();
   try {
-    const { projectId } = params;
+    const { projectId } = await params;
     const updateData = await req.json();
 
     const updatedProject = await Project.findByIdAndUpdate(projectId, updateData, { new: true });
@@ -17,8 +17,8 @@ export async function PUT(req: NextRequest, { params }: { params: { projectId: s
     }
 
     return NextResponse.json({ success: true, message: "Project updated successfully", data: updatedProject });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error updating project:", error);
-    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ success: false, message: "Internal server error", error: error?.message ?? String(error) }, { status: 500 });
   }
 }

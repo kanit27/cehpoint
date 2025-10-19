@@ -3,10 +3,10 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "../../../../lib/db";
 import ProjectTemplate from "../../../../lib/models/ProjectTemplate";
 
-export async function PUT(req: NextRequest, { params }: { params: { templateId: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ templateId: string }> }) {
     await connectDB();
     try {
-        const { templateId } = params;
+        const { templateId } = await params;
         const { userId, title } = await req.json();
 
         if (!userId || !title) {
