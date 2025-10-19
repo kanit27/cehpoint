@@ -33,7 +33,7 @@ const Projects: React.FC<ProjectsProps> = ({ courseTitle }) => {
             if (!uid) return;
             try {
                 const response = await axiosInstance.get(`/api/projects?uid=${uid}`);
-                const userProjects = response.data.data || [];
+                const userProjects = (response as any)?.data?.data || [];
                 // Allow creation if user has no projects OR all their projects are marked as completed
                 if (userProjects.length === 0 || userProjects.every((p: any) => p.completed)) {
                     setCanCreateProject(true);
@@ -48,8 +48,8 @@ const Projects: React.FC<ProjectsProps> = ({ courseTitle }) => {
         const fetchSuggestions = async () => {
             setLoading(true);
             try {
-                const response = await axiosInstance.post('/api/project-templates', { mainTopic: courseTitle });
-                if (response.data.success) {
+                const response = await axiosInstance.post<{ success: boolean; data: ProjectSuggestion[] }>('/api/project-templates', { mainTopic: courseTitle });
+                if (response?.data?.success) {
                     setSuggestions(response.data.data);
                 }
             } catch (error) {
