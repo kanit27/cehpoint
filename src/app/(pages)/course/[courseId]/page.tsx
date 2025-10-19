@@ -13,19 +13,17 @@ import {
   IoChevronForwardOutline,
   IoMenu,
   IoClose,
+  IoSparkles,
 } from "react-icons/io5";
 
 import CourseSidebar from "@/app/components/course/CourseSidebar";
 import CircularProgressBar from "@/app/components/course/CircularProgressBar";
 import MarkdownRenderer from "@/app/components/course/MarkdownRenderer";
 import ChatDrawer from "@/app/components/course/ChatDrawer";
+import Quiz from "@/app/components/course/Quiz"; // Import the new Quiz component
+import Projects from "@/app/components/course/Projects"; // Import the new Projects component
 
-const QuizView = ({ courseTitle }: { courseTitle: string }) => (
-  <div className="p-8 text-center">Quiz for {courseTitle} will be shown here.</div>
-);
-const ProjectsView = ({ courseTitle }: { courseTitle: string }) => (
-  <div className="p-8 text-center">Projects for {courseTitle} will be shown here.</div>
-);
+
 
 const CoursePage = () => {
   const router = useRouter();
@@ -56,6 +54,15 @@ const CoursePage = () => {
   const [messages, setMessages] = useState<{ text: string; sender: "bot" | "user" }[]>([]);
   const [newMessage, setNewMessage] = useState("");
 
+  // track current user id (from sessionStorage)
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setUserId(sessionStorage.getItem("uid"));
+    }
+  }, []);
+  
   useEffect(() => {
     const darkMode =
       typeof window !== "undefined" &&
@@ -434,8 +441,8 @@ const CoursePage = () => {
                   </div>
                 )}
 
-                {view === "quiz" && <QuizView courseTitle={courseData.mainTopic} />}
-                {view === "projects" && <ProjectsView courseTitle={courseData.mainTopic} />}
+                {view === "quiz" && userId && <Quiz courseTitle={courseData.mainTopic} courseId={courseId} userId={userId} />}
+                        {view === "projects" && <Projects courseTitle={courseData.mainTopic} />}
               </>
             )}
           </div>

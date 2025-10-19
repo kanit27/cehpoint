@@ -1,32 +1,22 @@
-import { NextRequest, NextResponse } from 'next/server';
-import connectDB from '../../../../lib/db';
-import Project from '../../../../lib/models/Project';
+// src/app/api/projects/[projectId]/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import connectDB from "../../../../lib/db";
+import Project from "../../../../lib/models/Project";
 
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: Promise<{ projectId: string }> }
-) {
+// PUT to update a project
+export async function PUT(req: NextRequest, { params }: { params: { projectId: string } }) {
   await connectDB();
-
   try {
-    const { projectId } = await params;
-    const body = await req.json();
-    const { completed, github_url, video_url } = body;
+    const { projectId } = params;
+    const updateData = await req.json();
 
-    const project = await Project.findById(projectId);
+    const updatedProject = await Project.findByIdAndUpdate(projectId, updateData, { new: true });
 
-    if (!project) {
+    if (!updatedProject) {
       return NextResponse.json({ success: false, message: "Project not found" }, { status: 404 });
     }
 
-    // Update fields if they are provided
-    if (typeof completed !== 'undefined') project.completed = completed;
-    if (github_url) project.github_url = github_url;
-    if (video_url) project.video_url = video_url;
-    
-    await project.save();
-
-    return NextResponse.json({ success: true, message: "Project updated successfully", data: project }, { status: 200 });
+    return NextResponse.json({ success: true, message: "Project updated successfully", data: updatedProject });
   } catch (error) {
     console.error("Error updating project:", error);
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });

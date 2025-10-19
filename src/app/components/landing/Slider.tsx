@@ -21,7 +21,7 @@ const CustomSlider: React.FC = () => {
   const buttons = ["Generate", "Learn", "More"];
 
   const handleClick = () => {
-    const paths = ["/create", "/course", "/about"];
+    const paths = ["/signin", "/signin", "/signin"];
     router.push(paths[currentIndex]);
   };
 

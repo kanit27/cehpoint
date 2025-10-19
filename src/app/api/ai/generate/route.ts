@@ -29,22 +29,28 @@ const safetySettings = [
 ];
 
 export async function POST(req: NextRequest) {
-  const { prompt } = await req.json();
+  const { prompt, useUserApiKey, userApiKey } = await req.json();
 
   try {
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash",
-      safetySettings,
-    });
+    let model;
+    if (useUserApiKey && userApiKey) {
+      const genAIuser = new GoogleGenerativeAI(userApiKey);
+      model = genAIuser.getGenerativeModel({
+        model: "gemini-2.0-flash",
+        safetySettings,
+      });
+    } else {
+      model = genAI.getGenerativeModel({ model: "gemini-2.0-flash", safetySettings });
+    }
 
     const result = await model.generateContent(prompt);
-    const txt = result.response.text();
-    const text = converter.makeHtml(txt);
-    return NextResponse.json({ text });
+    const generatedText = result.response.text();
+    const htmlContent = converter.makeHtml(generatedText);
+    return NextResponse.json({ text: htmlContent });
   } catch (error: any) {
-    console.error("Error in handleChat:", error);
+    console.error("Error in generateContent:", error);
     return NextResponse.json(
-      { success: false, message: "Internal server error" },
+      { success: false, message: "Error in generating" },
       { status: 500 }
     );
   }

@@ -1,7 +1,6 @@
 // lib/models/Project.ts
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Schema, Model } from 'mongoose';
 
-// Interface for type-safety
 export interface IProject extends Document {
   title: string;
   description: string;
@@ -17,7 +16,7 @@ export interface IProject extends Document {
   dateCreated: Date;
 }
 
-const projectSchema = new Schema(
+const projectSchema: Schema<IProject> = new mongoose.Schema(
   {
     title: { type: String, required: true },
     description: { type: String, required: true },
@@ -32,10 +31,9 @@ const projectSchema = new Schema(
     approve: { type: String, enum: ['pending', 'accepted', 'rejected'], default: 'pending' },
     dateCreated: { type: Date, default: Date.now },
   },
-  {
-    collection: "project-users", // Specifies the collection name in MongoDB
-  }
+  { collection: "project-users" }
 );
 
-// This line prevents the model from being re-compiled on hot reloads
-export default mongoose.models.Project || mongoose.model<IProject>("Project", projectSchema);
+const Project: Model<IProject> = mongoose.models.Project || mongoose.model<IProject>("Project", projectSchema);
+
+export default Project;

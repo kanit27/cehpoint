@@ -29,7 +29,16 @@ export async function POST(req: NextRequest) {
       console.error("Unsplash error:", e);
     }
 
-    const newCourse = new Course({ user, content, type, mainTopic, photo });
+    const newCourse = new Course({
+        user,
+        content,
+        type,
+        mainTopic,
+        photo,
+        progress: 0,
+        completed: false,
+        date: Date.now(),
+    });
     await newCourse.save();
 
     return NextResponse.json({ success: true, message: "Course created successfully", courseId: newCourse._id });

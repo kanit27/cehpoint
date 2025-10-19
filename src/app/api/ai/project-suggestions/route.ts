@@ -4,10 +4,8 @@ import {
   HarmCategory,
   HarmBlockThreshold,
 } from "@google/generative-ai";
-import showdown from "showdown";
 
 const genAI = new GoogleGenerativeAI(process.env.API_KEY || "");
-const converter = new showdown.Converter();
 
 const safetySettings = [
   {
@@ -36,15 +34,18 @@ export async function POST(req: NextRequest) {
       model: "gemini-2.0-flash",
       safetySettings,
     });
-
-    const result = await model.generateContent(prompt);
-    const txt = result.response.text();
-    const text = converter.makeHtml(txt);
-    return NextResponse.json({ text });
+    const result = await model.generateContent(
+      `Generate project suggestions based on: ${prompt}`
+    );
+    const suggestions = result.response
+      .text()
+      .split("\n")
+      .filter((suggestion) => suggestion.trim() !== "");
+    return NextResponse.json({ suggestions });
   } catch (error: any) {
-    console.error("Error in handleChat:", error);
+    console.error("Error generating project suggestions:", error);
     return NextResponse.json(
-      { success: false, message: "Internal server error" },
+      { success: false, message: "Error generating project suggestions" },
       { status: 500 }
     );
   }

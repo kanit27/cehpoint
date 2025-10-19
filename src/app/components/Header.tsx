@@ -94,42 +94,42 @@ const Header: React.FC<HeaderProps> = ({ isHome = false, className }) => {
   // Mobile menu links
   const mobileLinks = (
     <>
-      <button onClick={() => redirect("/features")} className="font-medium dark:text-white text-black text-left w-full py-2">
+      <button onClick={() => redirect("/features")} className="font-medium dark:text-white text-black text-left w-full py-2 cursor-pointer">
         Features
       </button>
       {isLoggedIn && (
         <>
-          <button onClick={() => redirect("/home")} className="font-medium dark:text-white text-black text-left w-full py-2">
+          <button onClick={() => redirect("/home")} className="font-medium dark:text-white text-black text-left w-full py-2 cursor-pointer">
             Home
           </button>
-          <button onClick={() => redirect("/profile")} className="font-medium dark:text-white text-black text-left w-full py-2">
+          <button onClick={() => redirect("/profile")} className="font-medium dark:text-white text-black text-left w-full py-2 cursor-pointer">
             Profile
           </button>
-          <button onClick={() => redirect("/performance")} className="font-medium dark:text-white text-black text-left w-full py-2">
+          <button onClick={() => redirect("/performance")} className="font-medium dark:text-white text-black text-left w-full py-2 cursor-pointer">
             Performance
           </button>
-          <button onClick={() => redirect("/myproject")} className="font-medium dark:text-white text-black text-left w-full py-2">
+          <button onClick={() => redirect("/myproject")} className="font-medium dark:text-white text-black text-left w-full py-2 cursor-pointer">
             My Project
           </button>
-          <button onClick={() => redirect("/create")} className="font-medium text-white bg-black dark:text-black dark:bg-white px-3 py-1 rounded-md text-left w-full">
+          <button onClick={() => redirect("/create")} className="font-medium text-white bg-black dark:text-black dark:bg-white px-3 py-1 rounded-md text-left w-full cursor-pointer">
             Generate Course
           </button>
           {isAdmin && (
-            <button onClick={() => redirect("/project")} className="font-medium dark:text-white text-black text-left w-full py-2">
+            <button onClick={() => redirect("/project")} className="font-medium dark:text-white text-black text-left w-full py-2 cursor-pointer">
               Admin
             </button>
           )}
-          <button onClick={handleLogout} className="font-medium dark:text-white text-black text-left w-full py-2">
+          <button onClick={handleLogout} className="font-medium dark:text-white text-black text-left w-full py-2 cursor-pointer">
             Logout
           </button>
         </>
       )}
       {!isLoggedIn && (
         <>
-          <button onClick={() => redirect("/signin")} className="px-4 py-2 text-sm font-medium text-black dark:text-white border border-black dark:border-white rounded-md w-full text-left">
+          <button onClick={() => redirect("/signin")} className="px-4 py-2 text-sm font-medium text-black dark:text-white border border-black dark:border-white rounded-md w-full text-left cursor-pointer">
             SignIn
           </button>
-          <button onClick={() => redirect("/signup")} className="px-4 py-2 text-sm font-medium text-white bg-black dark:text-black dark:bg-white rounded-md w-full text-left">
+          <button onClick={() => redirect("/signup")} className="px-4 py-2 text-sm font-medium text-white bg-black dark:text-black dark:bg-white rounded-md w-full text-left cursor-pointer">
             SignUp
           </button>
         </>
@@ -151,34 +151,34 @@ const Header: React.FC<HeaderProps> = ({ isHome = false, className }) => {
         </Link>
       </div>
       <div className="flex items-center gap-5">
-        <DarkModeToggle />
+        {/* <DarkModeToggle /> */}
         <div className="hidden md:flex items-center gap-4">
-          <button onClick={() => redirect("/features")} className="font-medium dark:text-white text-black">
+          <button onClick={() => redirect("/features")} className="font-medium dark:text-white text-black cursor-pointer">
             Features
           </button>
           {isLoggedIn && (
             <>
-              <button onClick={() => redirect("/home")} className="font-medium dark:text-white text-black">
+              <button onClick={() => redirect("/home")} className="font-medium dark:text-white text-black cursor-pointer">
                 Home
               </button>
-              <button onClick={() => redirect("/profile")} className="font-medium dark:text-white text-black">
+              <button onClick={() => redirect("/profile")} className="font-medium dark:text-white text-black cursor-pointer">
                 Profile
               </button>
-              <button onClick={() => redirect("/performance")} className="font-medium dark:text-white text-black">
+              <button onClick={() => redirect("/performance")} className="font-medium dark:text-white text-black cursor-pointer">
                 Performance
               </button>
-              <button onClick={() => redirect("/myproject")} className="font-medium dark:text-white text-black">
+              <button onClick={() => redirect("/myproject")} className="font-medium dark:text-white text-black cursor-pointer">
                 My Project
               </button>
-              <button onClick={() => redirect("/create")} className="font-medium text-white bg-black dark:text-black dark:bg-white px-3 py-1 rounded-md">
+              <button onClick={() => redirect("/create")} className="font-medium text-white bg-black dark:text-black cursor-pointer dark:bg-white px-3 py-1 rounded-md">
                 Generate Course
               </button>
               {isAdmin && (
-                <button onClick={() => redirect("/project")} className="font-medium dark:text-white text-black">
+                <button onClick={() => redirect("/project")} className="font-medium dark:text-white text-black cursor-pointer">
                   Admin
                 </button>
               )}
-              <button onClick={handleLogout} className="font-medium dark:text-white text-black">
+              <button onClick={handleLogout} className="font-medium dark:text-white text-black cursor-pointer">
                 Logout
               </button>
             </>
@@ -193,29 +193,29 @@ const Header: React.FC<HeaderProps> = ({ isHome = false, className }) => {
                   <span className="block text-sm dark:text-white text-black">{userName}</span>
                   <span className="block truncate text-xs font-medium dark:text-white text-black">{userEmail}</span>
                 </div>
-                <button onClick={() => redirect("/home")} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-white text-black w-full text-left">
+                <button onClick={() => redirect("/home")} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-white text-black w-full cursor-pointer text-left">
                   Home
                 </button>
-                <button onClick={() => redirect("/profile")} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-white text-black w-full text-left">
+                <button onClick={() => redirect("/profile")} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-white text-black w-full cursor-pointer text-left">
                   Profile
                 </button>
-                <button onClick={() => redirect("/performance")} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-white text-black w-full text-left">
+                <button onClick={() => redirect("/performance")} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-white text-black w-full cursor-pointer text-left">
                   Performance
                 </button>
-                <button onClick={() => redirect("/myproject")} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-white text-black w-full text-left">
+                <button onClick={() => redirect("/myproject")} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-white text-black w-full cursor-pointer text-left">
                   My Project
                 </button>
-                <button onClick={() => redirect("/create")} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-white text-black w-full text-left">
+                <button onClick={() => redirect("/create")} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-white text-black w-full cursor-pointer text-left">
                   Generate Course
                 </button>
                 {isAdmin && (
-                  <button onClick={() => redirect("/project")} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-white text-black w-full text-left">
+                  <button onClick={() => redirect("/project")} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-white text-black w-full cursor-pointer text-left">
                     Admin
                   </button>
                 )}
                 <button
                   onClick={handleLogout}
-                  className="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-white text-black"
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-white text-black cursor-pointer"
                 >
                   Logout
                 </button>
@@ -224,10 +224,10 @@ const Header: React.FC<HeaderProps> = ({ isHome = false, className }) => {
           </div>
         ) : (
           <div className="flex gap-2">
-            <button onClick={() => redirect("/signin")} className="px-4 py-2 text-sm font-medium text-black dark:text-white border border-black dark:border-white rounded-md">
+            <button onClick={() => redirect("/signin")} className="px-4 py-2 text-sm font-medium text-black dark:text-white border border-black dark:border-white cursor-pointer rounded-md">
               SignIn
             </button>
-            <button onClick={() => redirect("/signup")} className="px-4 py-2 text-sm font-medium text-white bg-black dark:text-black dark:bg-white rounded-md">
+            <button onClick={() => redirect("/signup")} className="px-4 py-2 text-sm font-medium text-white bg-black dark:text-black dark:bg-white rounded-md cursor-pointer">
               SignUp
             </button>
           </div>
