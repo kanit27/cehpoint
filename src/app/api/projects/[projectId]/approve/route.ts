@@ -4,10 +4,11 @@ import connectDB from "../../../../../lib/db";
 import Project from "../../../../../lib/models/Project";
 
 // POST to approve a project
-export async function POST(req: NextRequest, { params }: { params: { projectId: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ projectId: string }> }) {
   await connectDB();
   try {
-    const { projectId } = params;
+    const { projectId } = await params;
+    const body = await req.json();
 
     const project = await Project.findByIdAndUpdate(projectId, { approve: 'accepted' }, { new: true });
 
@@ -20,8 +21,8 @@ export async function POST(req: NextRequest, { params }: { params: { projectId: 
         message: "Project approved successfully",
         data: project
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error approving project:", error);
-    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ success: false, message: "Internal server error", error: error?.message ?? String(error) }, { status: 500 });
   }
 }

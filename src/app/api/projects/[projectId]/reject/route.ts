@@ -4,10 +4,11 @@ import connectDB from "../../../../../lib/db";
 import Project from "../../../../../lib/models/Project";
 
 // POST to reject a project
-export async function POST(req: NextRequest, { params }: { params: { projectId: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ projectId: string }> }) {
   await connectDB();
   try {
-    const { projectId } = params;
+    const { projectId } = await params;
+    const body = await req.json();
 
     const project = await Project.findByIdAndUpdate(projectId, { approve: 'rejected' }, { new: true });
 
@@ -20,8 +21,8 @@ export async function POST(req: NextRequest, { params }: { params: { projectId: 
         message: "Project rejected successfully",
         data: project
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error rejecting project:", error);
-    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ success: false, message: "Internal server error", error: error?.message ?? String(error) }, { status: 500 });
   }
 }
