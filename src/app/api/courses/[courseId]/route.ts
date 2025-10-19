@@ -3,10 +3,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Course from '@/lib/models/Course';
 
-export async function GET(req: NextRequest, { params }: { params: { courseId: string } }) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ courseId: string }> }
+) {
   await connectDB();
   try {
-    const course = await Course.findById(params.courseId);
+    const { courseId } = await params;
+    const course = await Course.findById(courseId);
     if (!course) {
       return NextResponse.json({ success: false, message: "Course not found" }, { status: 404 });
     }
@@ -16,10 +20,14 @@ export async function GET(req: NextRequest, { params }: { params: { courseId: st
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { courseId: string } }) {
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ courseId: string }> }
+) {
   await connectDB();
   try {
-    const deletedCourse = await Course.findByIdAndDelete(params.courseId);
+    const { courseId } = await params;
+    const deletedCourse = await Course.findByIdAndDelete(courseId);
     if (!deletedCourse) {
       return NextResponse.json({ success: false, message: "Course not found" }, { status: 404 });
     }
