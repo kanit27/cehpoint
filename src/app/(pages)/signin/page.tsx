@@ -9,7 +9,7 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 
 import { mainname, subname, websiteURL } from "../../../lib/constants";
-import DarkModeToggle from "../../components/DarkModeToggle";
+// import DarkModeToggle from "../../components/DarkModeToggle";
 // import LogoComponent from "../../components/LogoComponent";
 import GoogleSignUpButton from "../../components/GoogleSignUpButton";
 import axiosInstance from "../../../lib/axios";
@@ -99,7 +99,7 @@ const SignInPage: React.FC = () => {
                 <em className="text-sm font-semibold">{subname}</em>
               </span>
             </Link>
-            <DarkModeToggle />
+            {/* <DarkModeToggle /> */}
           </nav>
 
           <form onSubmit={handleSignin} className="max-w-sm m-auto py-9 no-scrollbar">

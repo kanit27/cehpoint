@@ -443,8 +443,8 @@ const CoursePage = () => {
                   </div>
                 )}
 
-{view === "quiz" && userId && courseId && <Quiz courseTitle={courseData.mainTopic} courseId={courseId} userId={userId} />}                        {view === "projects" && <Projects courseTitle={courseData.mainTopic} />}
-              {view === "projects" && <Projects courseTitle={courseData.mainTopic} />}
+{view === "quiz" && userId && courseId && <Quiz courseTitle={courseData.mainTopic} courseId={courseId} userId={userId} />}                       
+              {view === "projects" && <Projects courseTitle={courseData.mainTopic}  />}
               </>
             )}
           </div>

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { getApps } from "firebase/app";
 import Header from "../../components/Header";
 import Footers from "../../components/Footers";
 import axiosInstance from "../../../lib/axios";
@@ -32,17 +33,52 @@ const MyProjectPage: React.FC = () => {
 
   // Fetch user and projects
   useEffect(() => {
-    const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        setUser(currentUser);
-        await fetchProjects(currentUser.uid);
-      } else {
-        setUser(null);
-        setProjects([]);
+    async function initAuthAndProjects() {
+      if (typeof window === "undefined") return;
+
+      try {
+        // If Firebase app exists, use auth listener
+        if (getApps().length > 0) {
+          const auth = getAuth();
+          const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+            if (currentUser) {
+              setUser(currentUser);
+              await fetchProjects(currentUser.uid);
+            } else {
+              setUser(null);
+              setProjects([]);
+            }
+          });
+          // keep the unsubscribe so it can be cleaned up if effect re-runs
+          return unsubscribe;
+        }
+
+        // No firebase app initialized: fallback to stored uid (if any)
+        const storedUid = sessionStorage.getItem("uid");
+        if (storedUid) {
+          await fetchProjects(storedUid);
+        } else {
+          setUser(null);
+          setProjects([]);
+        }
+      } catch (err) {
+        console.warn("Firebase not initialized or error during init:", err);
+        const storedUid = sessionStorage.getItem("uid");
+        if (storedUid) {
+          await fetchProjects(storedUid);
+        }
       }
+    }
+
+    // call and optionally capture unsubscribe to cleanup
+    let unsubscribeFn: (() => void) | undefined;
+    initAuthAndProjects().then((maybeUnsubscribe) => {
+      if (typeof maybeUnsubscribe === "function") unsubscribeFn = maybeUnsubscribe;
     });
-    return () => unsubscribe();
+
+    return () => {
+      if (unsubscribeFn) unsubscribeFn();
+    };
   }, []);
 
   const fetchProjects = async (uid: string) => {

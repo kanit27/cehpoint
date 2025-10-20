@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import connectDB from "../../../lib/db";
-import TrackUser from "../../../lib/models/TrackUser";
+import connectDB from "@/lib/db";
+import TrackUser from "@/lib/models/TrackUser";
 
 function toYMD(d: Date | string) {
   const dt = typeof d === "string" ? new Date(d) : d;
@@ -10,24 +10,36 @@ function toYMD(d: Date | string) {
 export async function POST(req: NextRequest) {
   await connectDB();
   try {
-    const allUsers = await TrackUser.find({});
+    const users = await TrackUser.find({});
     let updatedCount = 0;
 
-    for (const user of allUsers) {
-      // Normalize and sort dailyPerformance by date (ascending)
-      const perf = (user.dailyPerformance || []).map((p: any) => ({
-        ...p._doc,
-        date: toYMD(p.date || p),
-        totalScore: p.totalScore || 0,
-        count: typeof p.count === "number" ? p.count : 0,
-      }));
-      perf.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    for (const user of users) {
+      const rawPerf = (user as any).dailyPerformance || [];
 
-      // Recalculate count (1 when totalScore increased vs previous day, else 0)
+      // Normalize and deduplicate by date (keep entry with highest totalScore)
+      const byDate: Record<string, any> = {};
+      for (const p of rawPerf) {
+        const obj = p?.toObject ? p.toObject() : p;
+        const dateKey = toYMD(obj.date || obj.createdAt || new Date());
+        const totalScore = Number(obj.totalScore || 0);
+        const countVal = typeof obj.count === "number" ? obj.count : 0;
+
+        const existing = byDate[dateKey];
+        if (!existing || totalScore > existing.totalScore) {
+          byDate[dateKey] = { date: dateKey, totalScore, count: countVal };
+        }
+      }
+
+      // Turn map into sorted array (ascending)
+      let perf = Object.values(byDate).sort(
+        (a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime()
+      );
+
+      // Recalculate count: 1 when totalScore increased vs previous day
       let prevScore = 0;
       for (let i = 0; i < perf.length; i++) {
         const entry = perf[i];
-        const currScore = entry.totalScore || 0;
+        const currScore = Number(entry.totalScore || 0);
         entry.count = currScore - prevScore > 0 ? 1 : 0;
         prevScore = currScore;
       }
@@ -40,12 +52,12 @@ export async function POST(req: NextRequest) {
       for (const entry of perf) {
         const curDate = entry.date;
         if (prevDate) {
-          const dayDiff =
-            (new Date(curDate).getTime() - new Date(prevDate).getTime()) /
-            (1000 * 60 * 60 * 24);
+          const dayDiff = Math.round(
+            (new Date(curDate).getTime() - new Date(prevDate).getTime()) / (1000 * 60 * 60 * 24)
+          );
           if (dayDiff === 1 && entry.count === 1) {
             currentStreak += 1;
-          } else if (dayDiff > 1 || entry.count === 0) {
+          } else {
             maxStreak = Math.max(maxStreak, currentStreak);
             currentStreak = entry.count === 1 ? 1 : 0;
           }
@@ -63,18 +75,18 @@ export async function POST(req: NextRequest) {
         count: p.count,
       }));
 
-      // Apply updates to document
-      user.dailyPerformance = updatedDaily;
-      user.strick = currentStreak;
-      user.max_strick = maxStreak;
+      // Apply updates and save
+      (user as any).dailyPerformance = updatedDaily;
+      (user as any).strick = currentStreak;
+      (user as any).max_strick = maxStreak;
 
       await user.save();
       updatedCount++;
     }
 
     return NextResponse.json({ success: true, updatedCount });
-  } catch (error) {
-    console.error("Error in updateCountsForAllUsers:", error);
-    return NextResponse.json({ success: false, error: "Server error" }, { status: 500 });
+  } catch (error: any) {
+    console.error("updateCountsForAllUsers error:", error);
+    return NextResponse.json({ success: false, error: error?.message || "Server error" }, { status: 500 });
   }
 }

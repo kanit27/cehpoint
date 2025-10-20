@@ -8,7 +8,7 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Define which paths are protected
-  const protectedPaths = ['/home', '/profile', '/create', '/my-projects', '/course', '/admin'];
+  const protectedPaths = ['/home', '/profile', '/create', '/myproject', '/course', '/admin', '/performance', '/topics'];
 
   // Redirect to sign-in if trying to access a protected path without a token
   if (protectedPaths.some(path => pathname.startsWith(path)) && !token) {
