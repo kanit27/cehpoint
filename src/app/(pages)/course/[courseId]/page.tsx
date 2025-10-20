@@ -23,14 +23,14 @@ import ChatDrawer from "@/app/components/course/ChatDrawer";
 import Quiz from "@/app/components/course/Quiz"; // Import the new Quiz component
 import Projects from "@/app/components/course/Projects"; // Import the new Projects component
 
-
-
 const CoursePage = () => {
   const router = useRouter();
   const params = useParams();
- // normalize courseId (useParams returns ParamValue which can be string | string[] | undefined)
- const rawCourseId = params?.courseId;
- const courseId = Array.isArray(rawCourseId) ? rawCourseId[0] : rawCourseId ?? undefined;
+  // normalize courseId (useParams returns ParamValue which can be string | string[] | undefined)
+  const rawCourseId = params?.courseId;
+  const courseId = Array.isArray(rawCourseId)
+    ? rawCourseId[0]
+    : rawCourseId ?? undefined;
   const [theme, setTheme] = useState(false);
 
   const [courseData, setCourseData] = useState<any>(null);
@@ -53,7 +53,9 @@ const CoursePage = () => {
 
   const [percentage, setPercentage] = useState(0);
 
-  const [messages, setMessages] = useState<{ text: string; sender: "bot" | "user" }[]>([]);
+  const [messages, setMessages] = useState<
+    { text: string; sender: "bot" | "user" }[]
+  >([]);
   const [newMessage, setNewMessage] = useState("");
 
   // track current user id (from sessionStorage)
@@ -64,7 +66,7 @@ const CoursePage = () => {
       setUserId(sessionStorage.getItem("uid"));
     }
   }, []);
-  
+
   useEffect(() => {
     const darkMode =
       typeof window !== "undefined" &&
@@ -91,21 +93,35 @@ const CoursePage = () => {
   }, [courseData]);
 
   const generateContentForSubtopic = useCallback(
-    async (topicTitle: string, subtopicTitle: string, options?: { silent?: boolean }) => {
+    async (
+      topicTitle: string,
+      subtopicTitle: string,
+      options?: { silent?: boolean }
+    ) => {
       if (!options?.silent) setIsGenerating(true);
       try {
-        const response = await axiosInstance.post(`/api/courses/generate-content`, {
-          courseId,
-          topicTitle,
-          subtopicTitle,
-        });
-        const data = response.data as { success: boolean; course?: any; message?: string };
+        const response = await axiosInstance.post(
+          `/api/courses/generate-content`,
+          {
+            courseId,
+            topicTitle,
+            subtopicTitle,
+          }
+        );
+        const data = response.data as {
+          success: boolean;
+          course?: any;
+          message?: string;
+        };
 
         if (data.success && data.course) {
           const updatedCourse = data.course;
           const parsedContent = JSON.parse(updatedCourse.content);
           setCourseData({ ...updatedCourse, content: parsedContent });
-          return { success: true, course: { ...updatedCourse, content: parsedContent } };
+          return {
+            success: true,
+            course: { ...updatedCourse, content: parsedContent },
+          };
         } else {
           toast.error(data.message || "Failed to generate content.");
           return { success: false };
@@ -128,8 +144,12 @@ const CoursePage = () => {
       if (!courseData) return;
 
       const mainTopicKey = courseData.mainTopic.toLowerCase();
-      const topic = courseData.content[mainTopicKey]?.find((t: any) => t.title === topicTitle);
-      const subtopic = topic?.subtopics.find((st: any) => st.title === subtopicTitle);
+      const topic = courseData.content[mainTopicKey]?.find(
+        (t: any) => t.title === topicTitle
+      );
+      const subtopic = topic?.subtopics.find(
+        (st: any) => st.title === subtopicTitle
+      );
 
       if (subtopic && (subtopic.theory || subtopic.youtube || subtopic.image)) {
         setActiveTopic({ topicTitle, subtopicTitle });
@@ -144,7 +164,11 @@ const CoursePage = () => {
         autoClose: false,
       });
 
-      const result = await generateContentForSubtopic(topicTitle, subtopicTitle, { silent: true });
+      const result = await generateContentForSubtopic(
+        topicTitle,
+        subtopicTitle,
+        { silent: true }
+      );
 
       if (result.success) {
         toast.dismiss(toastId);
@@ -168,7 +192,11 @@ const CoursePage = () => {
         setLoading(true);
         try {
           const response = await axiosInstance.get(`/api/courses/${courseId}`);
-          const data = response.data as { content: string; mainTopic: string; [key: string]: any };
+          const data = response.data as {
+            content: string;
+            mainTopic: string;
+            [key: string]: any;
+          };
           const parsedContent = JSON.parse(data.content);
           setCourseData({ ...data, content: parsedContent });
 
@@ -176,7 +204,10 @@ const CoursePage = () => {
             const mainTopicKey = data.mainTopic.toLowerCase();
             const firstTopic = parsedContent[mainTopicKey][0];
             const firstSubtopic = firstTopic.subtopics[0];
-            setActiveTopic({ topicTitle: firstTopic.title, subtopicTitle: firstSubtopic.title });
+            setActiveTopic({
+              topicTitle: firstTopic.title,
+              subtopicTitle: firstSubtopic.title,
+            });
           }
         } catch {
           toast.error("Failed to load course data.");
@@ -192,13 +223,20 @@ const CoursePage = () => {
   useEffect(() => {
     if (courseData && activeTopic) {
       const mainTopicKey = courseData.mainTopic.toLowerCase();
-      const topic = courseData.content[mainTopicKey]?.find((t: any) => t.title === activeTopic.topicTitle);
-      const subtopic = topic?.subtopics.find((st: any) => st.title === activeTopic.subtopicTitle);
+      const topic = courseData.content[mainTopicKey]?.find(
+        (t: any) => t.title === activeTopic.topicTitle
+      );
+      const subtopic = topic?.subtopics.find(
+        (st: any) => st.title === activeTopic.subtopicTitle
+      );
 
       if (subtopic && (subtopic.theory || subtopic.youtube || subtopic.image)) {
         setContent(subtopic);
       } else if (subtopic) {
-        generateContentForSubtopic(activeTopic.topicTitle, activeTopic.subtopicTitle);
+        generateContentForSubtopic(
+          activeTopic.topicTitle,
+          activeTopic.subtopicTitle
+        );
       }
       updateProgress();
     }
@@ -223,12 +261,17 @@ const CoursePage = () => {
     setNewMessage("");
 
     try {
-      const response = await axiosInstance.post("/api/ai/chat", { prompt: userMessage.text });
+      const response = await axiosInstance.post("/api/ai/chat", {
+        prompt: userMessage.text,
+      });
       const data = response.data as { text: string };
       const botMessage = { text: data.text, sender: "bot" as const };
       setMessages((prev) => [...prev, botMessage]);
     } catch {
-      const errorMessage = { text: "Sorry, I couldn't get a response. Please try again.", sender: "bot" as const };
+      const errorMessage = {
+        text: "Sorry, I couldn't get a response. Please try again.",
+        sender: "bot" as const,
+      };
       setMessages((prev) => [...prev, errorMessage]);
     }
   };
@@ -238,11 +281,15 @@ const CoursePage = () => {
       if (!courseData || !activeTopic) return;
       const mainTopicKey = courseData.mainTopic.toLowerCase();
       const topics = courseData.content[mainTopicKey] || [];
-      const currentTopicIndex = topics.findIndex((t: any) => t.title === activeTopic.topicTitle);
+      const currentTopicIndex = topics.findIndex(
+        (t: any) => t.title === activeTopic.topicTitle
+      );
       if (currentTopicIndex === -1) return;
 
       const currentTopic = topics[currentTopicIndex];
-      const currentSubIndex = currentTopic.subtopics.findIndex((s: any) => s.title === activeTopic.subtopicTitle);
+      const currentSubIndex = currentTopic.subtopics.findIndex(
+        (s: any) => s.title === activeTopic.subtopicTitle
+      );
 
       let targetTopicIndex = currentTopicIndex;
       let targetSubIndex = currentSubIndex;
@@ -273,8 +320,14 @@ const CoursePage = () => {
       const targetTopic = topics[targetTopicIndex];
       const targetSub = targetTopic.subtopics[targetSubIndex];
 
-      if (targetSub && (targetSub.theory || targetSub.youtube || targetSub.image)) {
-        setActiveTopic({ topicTitle: targetTopic.title, subtopicTitle: targetSub.title });
+      if (
+        targetSub &&
+        (targetSub.theory || targetSub.youtube || targetSub.image)
+      ) {
+        setActiveTopic({
+          topicTitle: targetTopic.title,
+          subtopicTitle: targetSub.title,
+        });
         setView("content");
       } else {
         const toastId = toast.loading("Please Wait", {
@@ -284,10 +337,17 @@ const CoursePage = () => {
           autoClose: false,
         });
 
-        const res = await generateContentForSubtopic(targetTopic.title, targetSub.title, { silent: true });
+        const res = await generateContentForSubtopic(
+          targetTopic.title,
+          targetSub.title,
+          { silent: true }
+        );
         if (res.success) {
           toast.dismiss(toastId);
-          setActiveTopic({ topicTitle: targetTopic.title, subtopicTitle: targetSub.title });
+          setActiveTopic({
+            topicTitle: targetTopic.title,
+            subtopicTitle: targetSub.title,
+          });
           setView("content");
         } else {
           toast.update(toastId, {
@@ -324,17 +384,24 @@ const CoursePage = () => {
             onSelectSubtopic={handleSelectSubtopic}
             onShowQuiz={() => setView("quiz")}
             onShowProjects={() => setView("projects")}
-            activeSubtopic={view === "content" ? activeTopic?.subtopicTitle || null : null}
+            activeSubtopic={
+              view === "content" ? activeTopic?.subtopicTitle || null : null
+            }
           />
         </aside>
 
         {/* Mobile Sidebar */}
         <div
-          className={`fixed inset-0 z-60 md:hidden transition-transform duration-300 ease-in-out ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
+          className={`fixed inset-0 z-60 md:hidden transition-transform duration-300 ease-in-out ${
+            isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
           role="dialog"
           aria-modal="true"
         >
-          <div className="absolute inset-0 bg-black/10" onClick={() => setIsSidebarOpen(false)} />
+          <div
+            className="absolute inset-0 bg-black/10"
+            onClick={() => setIsSidebarOpen(false)}
+          />
           <div className="relative w-full h-full bg-white dark:bg-black shadow-lg overflow-auto">
             <button
               onClick={() => setIsSidebarOpen(false)}
@@ -355,7 +422,9 @@ const CoursePage = () => {
                 setView("projects");
                 setIsSidebarOpen(false);
               }}
-              activeSubtopic={view === "content" ? activeTopic?.subtopicTitle || null : null}
+              activeSubtopic={
+                view === "content" ? activeTopic?.subtopicTitle || null : null
+              }
               showOnMobile={true}
             />
           </div>
@@ -374,7 +443,10 @@ const CoursePage = () => {
                 >
                   <IoMenu size={26} />
                 </button>
-                <CircularProgressBar percentage={percentage} isDarkMode={theme} />
+                <CircularProgressBar
+                  percentage={percentage}
+                  isDarkMode={theme}
+                />
                 <h1 className="text-lg sm:text-xl font-bold capitalize text-black dark:text-white truncate">
                   {courseData.mainTopic}
                 </h1>
@@ -387,7 +459,9 @@ const CoursePage = () => {
             {isGenerating ? (
               <div className="flex flex-col justify-center items-center h-full p-6 text-center">
                 <AiOutlineLoading className="h-12 w-12 animate-spin text-black dark:text-white" />
-                <p className="mt-4 text-black dark:text-white">Generating content, please wait...</p>
+                <p className="mt-4 text-black dark:text-white">
+                  Generating content, please wait...
+                </p>
               </div>
             ) : (
               <>
@@ -418,7 +492,10 @@ const CoursePage = () => {
                     )}
 
                     <MarkdownRenderer
-                      content={content.theory || "No theory available for this topic yet."}
+                      content={
+                        content.theory ||
+                        "No theory available for this topic yet."
+                      }
                     />
 
                     <div className="mt-8 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
@@ -443,8 +520,19 @@ const CoursePage = () => {
                   </div>
                 )}
 
-{view === "quiz" && userId && courseId && <Quiz courseTitle={courseData.mainTopic} courseId={courseId} userId={userId} />}                       
-              {view === "projects" && <Projects courseTitle={courseData.mainTopic}  />}
+                {view === "quiz" && userId && courseId && (
+                  <Quiz
+                    courseTitle={courseData.mainTopic}
+                    courseId={courseId}
+                    userId={userId}
+                  />
+                )}
+                {view === "projects" && (
+                  <Projects
+                    courseTitle={courseData?.mainTopic}
+                    parentLoading={loading}
+                  />
+                )}
               </>
             )}
           </div>
