@@ -114,8 +114,8 @@ const Projects: React.FC<ProjectsProps> = ({ courseTitle, parentLoading = false 
 
   const updateProjectAssignedTo = async (projectTitle: string, uid: string) => {
     try {
-      const tplResp = await axiosInstance.get("/api/project-templates").catch(() => null);
-      const templates = tplResp?.data?.data ?? tplResp?.data ?? [];
+      const tplResp: any = await axiosInstance.get("/api/project-templates").catch(() => null);
+      const templates = (tplResp?.data?.data ?? tplResp?.data) ?? [];
       const match = Array.isArray(templates)
         ? templates.find((t: any) => t.title === projectTitle || t.name === projectTitle)
         : null;
