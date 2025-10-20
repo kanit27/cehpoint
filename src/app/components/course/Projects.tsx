@@ -35,6 +35,7 @@ const Projects: React.FC<ProjectsProps> = ({ courseTitle, parentLoading = false 
   const [canCreateProject, setCanCreateProject] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Only call Firebase on client and only if initialized
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
@@ -63,6 +64,34 @@ const Projects: React.FC<ProjectsProps> = ({ courseTitle, parentLoading = false 
     }
   }, [firebaseUser]);
 
+  // fetch user id by email (try getusers then profile fallback)
+  useEffect(() => {
+    const fetchUserId = async () => {
+      if (!userEmail) return;
+      try {
+        let resp = (await axiosInstance.get("/api/getusers").catch(() => null)) as any;
+        if (!resp || !resp.data) {
+          resp = (await axiosInstance.get("/api/user/profile").catch(() => null)) as any;
+          if (resp && resp.data && resp.data.email === userEmail) {
+            setUserId(resp.data._id || resp.data.id || null);
+            return;
+          }
+        } else {
+          const users = resp.data ?? [];
+          const found = users.find((u: any) => u.email === userEmail);
+          if (found) {
+            setUserId(found._id || found.id || null);
+            return;
+          }
+        }
+      } catch (err) {
+        console.error("fetchUserId error:", err);
+      }
+    };
+    fetchUserId();
+  }, [userEmail]);
+
+  // fetch project suggestions (use /api/project-suggestions)
   useEffect(() => {
     const fetchProjects = async () => {
       setLoading(true);
@@ -75,9 +104,8 @@ const Projects: React.FC<ProjectsProps> = ({ courseTitle, parentLoading = false 
           useUserApiKey: Boolean(storedConfig.useUserApiKey) || false,
           userApiKey: apiKey || null,
         };
-        // call the route we added above
-        const response = await axiosInstance.post("/api/project-suggestions", payload);
-        const data = (response as any)?.data?.data ?? (response as any)?.data ?? [];
+        const response = (await axiosInstance.post("/api/project-suggestions", payload).catch((e) => { throw e; })) as any;
+        const data = response?.data?.data ?? response?.data ?? [];
         setProjectPages(Array.isArray(data) ? data : []);
       } catch (err: any) {
         console.error("Error fetching projects:", err);
@@ -89,24 +117,19 @@ const Projects: React.FC<ProjectsProps> = ({ courseTitle, parentLoading = false 
     fetchProjects();
   }, [courseTitle]);
 
-  // check user's existing projects (keeps same logic)
+  // determine if user can create new project
   useEffect(() => {
     const checkUserProjects = async () => {
       if (!userId && !firebaseUid) return;
       try {
-        const resp = await axiosInstance.get("/api/getmyprojects");
-        const userProjects = (resp as any).data?.data ?? resp?.data ?? [];
-        const filteredUserProjects = userProjects.filter(
-          (project: any) =>
-            (firebaseUid && project.firebaseUId === firebaseUid) ||
-            (userId && project.userId === userId)
+        const resp = (await axiosInstance.get("/api/getmyprojects").catch(() => null)) as any;
+        const userProjects = resp?.data?.data ?? resp?.data ?? [];
+        const filtered = userProjects.filter(
+          (p: any) => (firebaseUid && p.firebaseUId === firebaseUid) || (userId && p.userId === userId)
         );
-        setCanCreateProject(
-          filteredUserProjects.length === 0 ||
-          filteredUserProjects.every((p: any) => p.completed)
-        );
+        setCanCreateProject(filtered.length === 0 || filtered.every((p: any) => p.completed));
       } catch (err) {
-        console.error("Error fetching user projects:", err);
+        console.error("checkUserProjects error:", err);
       }
     };
     checkUserProjects();
@@ -114,18 +137,17 @@ const Projects: React.FC<ProjectsProps> = ({ courseTitle, parentLoading = false 
 
   const updateProjectAssignedTo = async (projectTitle: string, uid: string) => {
     try {
-      const tplResp: any = await axiosInstance.get("/api/project-templates").catch(() => null);
-      const templates = (tplResp?.data?.data ?? tplResp?.data) ?? [];
-      const match = Array.isArray(templates)
-        ? templates.find((t: any) => t.title === projectTitle || t.name === projectTitle)
-        : null;
+      const tplResp = (await axiosInstance.get("/api/project-templates").catch(() => null)) as any;
+      const templates = tplResp?.data?.data ?? tplResp?.data ?? [];
+      const match = Array.isArray(templates) ? templates.find((t: any) => t.title === projectTitle || t.name === projectTitle) : null;
       if (match && match._id) {
         await axiosInstance.put(`/api/project-templates/${match._id}`, { userId: uid, title: projectTitle });
         return;
       }
+      // fallback endpoint from repo
       await axiosInstance.put("/api/updateuserproject", { projectTitle, userId: uid, title: projectTitle });
     } catch (err) {
-      console.error("Error updating project assignedTo:", err);
+      console.error("updateProjectAssignedTo error:", err);
     }
   };
 
@@ -135,9 +157,10 @@ const Projects: React.FC<ProjectsProps> = ({ courseTitle, parentLoading = false 
       return;
     }
     if (!canCreateProject) {
-      toast.warn("You must complete your current projects before starting a new one.");
+      toast.warn("Complete your current projects first.");
       return;
     }
+
     const payload = {
       projectTitle: selectedProject.title,
       description: selectedProject.description || "",
@@ -150,13 +173,14 @@ const Projects: React.FC<ProjectsProps> = ({ courseTitle, parentLoading = false 
       video_url: "",
       firebaseUId: firebaseUid || undefined,
     };
+
     try {
       await axiosInstance.post("/api/projects", payload);
       await updateProjectAssignedTo(selectedProject.title, userId || firebaseUid || "");
       toast.success("Project saved successfully");
       setCanCreateProject(false);
     } catch (err) {
-      console.error("Error saving project:", err);
+      console.error("saveProject error:", err);
       toast.error("Failed to save project.");
     }
   };
@@ -165,7 +189,7 @@ const Projects: React.FC<ProjectsProps> = ({ courseTitle, parentLoading = false 
   const handleNext = () => setCurrentPage((p) => Math.min(projectPages.length - 1, p + 1));
   const handlePrev = () => setCurrentPage((p) => Math.max(0, p - 1));
 
-  // IMPORTANT: if parent is showing a global loader, do not show Projects' spinner
+  // If parent shows a global/full-screen loader, don't show Projects spinner
   if (parentLoading) return null;
 
   if (loading) {
@@ -194,11 +218,9 @@ const Projects: React.FC<ProjectsProps> = ({ courseTitle, parentLoading = false 
 
       {error && <p className="text-red-500 mb-4">{error}</p>}
 
-      {!loading && projectPages.length === 0 && (
+      {projectPages.length === 0 ? (
         <p className="text-gray-700 dark:text-gray-300">No project suggestions found.</p>
-      )}
-
-      {!loading && projectPages.length > 0 && (
+      ) : (
         <>
           <ul className="mb-4 w-full block space-y-3">
             {projectPages.map((project, index) => (
@@ -226,6 +248,7 @@ const Projects: React.FC<ProjectsProps> = ({ courseTitle, parentLoading = false 
               <button onClick={handlePrev} disabled={currentPage === 0} className="px-3 py-2 bg-gray-200 dark:bg-gray-700 rounded disabled:opacity-50">Prev</button>
               <button onClick={handleNext} disabled={currentPage === projectPages.length - 1} className="px-3 py-2 bg-gray-200 dark:bg-gray-700 rounded disabled:opacity-50">Next</button>
             </div>
+
             <div className="text-sm text-gray-600 dark:text-gray-400">
               {projectPages.length > 0 ? `${currentPage + 1} / ${projectPages.length}` : ""}
             </div>
