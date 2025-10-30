@@ -152,7 +152,7 @@ const Projects: React.FC<ProjectsProps> = ({ courseTitle, parentLoading = false 
         // Try AI generation first
         try {
           const aiResponse = await axiosInstance.post<ApiResponse<Project[]>>("/api/project-templates", payload);
-          if (aiResponse.data?.success && aiResponse.data.data?.length > 0) {
+          if (aiResponse.data?.success && Array.isArray(aiResponse.data.data) && aiResponse.data.data.length > 0) {
             setProjectPages(aiResponse.data.data);
             return;
           }
@@ -197,9 +197,9 @@ const Projects: React.FC<ProjectsProps> = ({ courseTitle, parentLoading = false 
       try {
         // Use GET /api/projects?uid=...
         const uid = firebaseUid || userId;
-        const resp = await axiosInstance.get<ApiResponse<Project[]>>(`/api/projects?uid=${uid}`).catch(() => null);
+        const resp = (await axiosInstance.get<ApiResponse<Project[]>>(`/api/projects?uid=${uid}`).catch(() => null)) as any;
         
-        const userProjects = resp?.data?.data ?? [];
+        const userProjects = (resp?.data?.data ?? []) as Project[];
         
         // Filter just in case API returns more than needed (though query should handle it)
         const filtered = Array.isArray(userProjects)
@@ -220,8 +220,8 @@ const Projects: React.FC<ProjectsProps> = ({ courseTitle, parentLoading = false 
     try {
       // This logic seems complex. Is /api/project-templates GET endpoint correct?
       // Assuming it's correct for now.
-      const tplResp = await axiosInstance.get<ApiResponse<Project[]>>("/api/project-templates").catch(() => null);
-      const templates = tplResp?.data?.data ?? [];
+      const tplResp = (await axiosInstance.get<ApiResponse<Project[]>>("/api/project-templates").catch(() => null)) as any | null;
+      const templates = (tplResp?.data?.data ?? []) as Project[];
       const match = Array.isArray(templates) ? templates.find((t: any) => t.title === projectTitle || t.name === projectTitle) : null;
       if (match && (match as any)._id) {
         await axiosInstance.put(`/api/project-templates/${(match as any)._id}`, { userId: uid, title: projectTitle });
