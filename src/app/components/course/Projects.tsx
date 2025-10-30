@@ -4,6 +4,7 @@
 import React, { useEffect, useState } from "react";
 import { getAuth } from "firebase/auth";
 import { getApps } from "firebase/app";
+import { AxiosError } from "axios";
 import axiosInstance from "@/lib/axios";
 import { toast } from "react-toastify";
 import { AiOutlineLoading } from "react-icons/ai";
@@ -139,84 +140,52 @@ const Projects: React.FC<ProjectsProps> = ({ courseTitle, parentLoading = false 
     const fetchProjects = async () => {
       setLoading(true);
       setError(null);
-
-      const storedConfig = typeof window !== "undefined" ? safeParse(localStorage.getItem("projectConfig")) : {};
-      const apiKey = typeof window !== "undefined" ? sessionStorage.getItem("apiKey") : null;
-      const payload = {
-        mainTopic: storedConfig?.mainTopic || courseTitle || "",
-        useUserApiKey: Boolean(storedConfig?.useUserApiKey) || false,
-        userApiKey: apiKey || null,
-      };
-      console.debug("[Projects] request payload:", payload);
-
-      let projects: Project[] = [];
-      let aiFailed = false;
-
-      // Step 1: Try to get AI-generated projects first
+      
       try {
-        console.debug("[Projects] Attempting AI generation via /api/project-templates...");
-        const response = await axiosInstance
-          .post<ApiResponse<Project[]>>("/api/project-templates", payload)
-          .catch(() => null) as { data: ApiResponse<Project[]> } | null;
-          
-        if (response?.data) {
-          console.debug("[Projects] AI response:", response.data);
-          projects = response.data.data ?? [];
-        }
+        const storedConfig = typeof window !== "undefined" ? safeParse(localStorage.getItem("projectConfig")) : {};
+        const apiKey = typeof window !== "undefined" ? sessionStorage.getItem("apiKey") : null;
+        const payload = {
+          mainTopic: storedConfig?.mainTopic || courseTitle || "",
+          useUserApiKey: Boolean(storedConfig?.useUserApiKey) || false,
+          userApiKey: apiKey || null,
+        };
 
-        if (!response?.data?.success || projects.length === 0) {
-          aiFailed = true;
-          if (response?.data?.message) {
-            setError(response.data.message);
-          }
-        }
-      } catch (err: any) {
-        aiFailed = true;
-        console.error("Error fetching AI projects:", err);
-        setError(err?.response?.data?.message || err?.message || "Failed to fetch AI projects");
-      }
-
-      // Step 2: If AI failed or returned nothing, fall back to DB search
-      if (aiFailed) {
+        // Try AI generation first
         try {
-          console.debug("[Projects] Falling back to DB search via /api/project-suggestions...");
-          const response = await axiosInstance
-            .post<ApiResponse<Project[]>>("/api/project-suggestions", payload)
-            .catch(() => null) as { data: ApiResponse<Project[]> } | null;
-
-          if (response?.data) {
-            console.debug("[Projects] DB search response:", response.data);
-            projects = response.data.data ?? [];
-            const dbNote = response.data.note;
-            if (!error) {
-              setError(dbNote ?? null);
-            }
+          const aiResponse = await axiosInstance.post<ApiResponse<Project[]>>("/api/project-templates", payload);
+          if (aiResponse.data?.success && aiResponse.data.data?.length > 0) {
+            setProjectPages(aiResponse.data.data);
+            return;
           }
-        } catch (err: any) {
-          console.error("Error fetching DB projects:", err);
-          if (!error) {
-            setError(err?.response?.data?.message || err?.message || "Failed to fetch projects from database");
+        } catch (aiError) {
+          console.debug("[Projects] AI generation failed, falling back to DB");
+        }
+
+        // Fallback to DB search
+        const dbResponse = await axiosInstance.post<ApiResponse<Project[]>>("/api/project-suggestions", payload);
+        if (dbResponse.data?.success) {
+          setProjectPages(dbResponse.data.data ?? []);
+          if (dbResponse.data.note) {
+            setError(dbResponse.data.note);
           }
         }
+      } catch (err) {
+        const axiosError = err as AxiosError<ApiResponse>;
+        console.error("Error fetching projects:", err);
+        setError(
+          axiosError.response?.data?.message || 
+          axiosError.message || 
+          "Failed to fetch projects"
+        );
+      } finally {
+        setLoading(false);
       }
-
-      setProjectPages(Array.isArray(projects) ? projects : []);
-
-      if (projects.length === 0 && !error) {
-        setError("No project suggestions found for this topic.");
-      }
-
-      setLoading(false);
     };
 
-    if (typeof window !== "undefined" && courseTitle) fetchProjects();
-    else if (!courseTitle) {
-      setLoading(false);
-      setError("No course topic specified.");
-    } else {
-      setLoading(false);
+    if (typeof window !== "undefined" && courseTitle) {
+      fetchProjects();
     }
-  }, [courseTitle, error]);
+  }, [courseTitle]);
 
   useEffect(() => {
     const checkUserProjects = async () => {
@@ -272,45 +241,28 @@ const Projects: React.FC<ProjectsProps> = ({ courseTitle, parentLoading = false 
       return;
     }
 
-    const payload: Project = {
-      title: selectedProject.title,
-      description: selectedProject.description || "",
-      difficulty: selectedProject.difficulty || "Beginner",
-      time: selectedProject.timeEstimate || selectedProject.time || "3-7 days",
-      timeEstimate: selectedProject.timeEstimate || selectedProject.time || "3-7 days",
-      userId: userId || undefined,
-      email: userEmail || "",
-      completed: false,
-      firebaseUId: firebaseUid || undefined,
-      // Include AI fields if they exist
-      category: selectedProject.category,
-      learningObjectives: selectedProject.learningObjectives,
-      deliverables: selectedProject.deliverables,
-      technologies: selectedProject.technologies,
-    };
-    
-    // Ensure required fields are present for the POST request
-    if (!payload.firebaseUId && !payload.userId) {
-       toast.error("User not identified. Cannot save project.");
-       return;
-    }
-    if (!payload.title || !payload.description) {
-        toast.error("Project title or description is missing.");
-        return;
-    }
-
     try {
-      // Use POST /api/projects
+      const payload = {
+        projectTitle: selectedProject.title,
+        description: selectedProject.description || "",
+        difficulty: selectedProject.difficulty || "Beginner",
+        time: selectedProject.timeEstimate || selectedProject.time || "3-7 days",
+        userId: userId || undefined,
+        email: userEmail || "",
+        completed: false,
+        firebaseUId: firebaseUid || undefined,
+      };
+
       await axiosInstance.post("/api/projects", payload);
-      
-      // This call might be redundant if the project is saved to the user already
-      // await updateProjectAssignedTo(selectedProject.title, userId || firebaseUid || "");
-      
+      if (userId || firebaseUid) {
+        await updateProjectAssignedTo(selectedProject.title, userId || firebaseUid || "");
+      }
       toast.success("Project saved successfully");
-      setCanCreateProject(false); // User now has an active project
-    } catch (err: any) {
+      setCanCreateProject(false);
+    } catch (err) {
+      const axiosError = err as AxiosError<ApiResponse>;
       console.error("saveProject error:", err);
-      toast.error(err?.response?.data?.message || "Failed to save project.");
+      toast.error(axiosError.response?.data?.message || "Failed to save project");
     }
   };
 
