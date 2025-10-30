@@ -104,12 +104,14 @@ const Projects: React.FC<ProjectsProps> = ({ courseTitle, parentLoading = false 
     const fetchUserId = async () => {
       if (!userEmail) return;
       try {
-        // try email lookup first
-        const resp = await axiosInstance.get<ApiResponse<UserDoc>>(
-          `/api/getusers?email=${encodeURIComponent(userEmail)}`
-        ).catch(() => null);
+        // request and cast to any to avoid narrow 'never' inference from .catch
+        const resp = (await axiosInstance
+          .get(`/api/getusers?email=${encodeURIComponent(userEmail)}`)
+          .catch(() => null)) as any | null;
 
-        const payload = resp?.data;
+        // assert payload shape
+        const payload = resp?.data as ApiResponse<UserDoc> | undefined;
+
         if (payload?.success && payload.data) {
           const user = payload.data;
           setUserId(user._id || user.id || user.uid || null);
@@ -117,8 +119,8 @@ const Projects: React.FC<ProjectsProps> = ({ courseTitle, parentLoading = false 
         }
 
         // fallback: fetch all users and find by email
-        const allResp = await axiosInstance.get<ApiResponse<UserDoc[]>>("/api/getusers").catch(() => null);
-        const users = allResp?.data?.data ?? [];
+        const allResp = (await axiosInstance.get("/api/getusers").catch(() => null)) as any | null;
+        const users = (allResp?.data?.data ?? allResp?.data) as UserDoc[] | undefined;
         const found = Array.isArray(users) ? users.find((u) => u.email === userEmail) ?? null : null;
         if (found) {
           setUserId(found._id || found.id || found.uid || null);
