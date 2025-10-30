@@ -152,20 +152,21 @@ const Projects: React.FC<ProjectsProps> = ({ courseTitle, parentLoading = false 
       let projects: Project[] = [];
       let aiFailed = false;
 
-      // --- NEW LOGIC ---
       // Step 1: Try to get AI-generated projects first
       try {
         console.debug("[Projects] Attempting AI generation via /api/project-templates...");
-        const response = await axiosInstance.post<ApiResponse<Project[]>>("/api/project-templates", payload).catch(() => null);
-        console.debug("[Projects] AI response:", response?.data);
-
-        projects = response?.data?.data ?? [];
+        const response = await axiosInstance
+          .post<ApiResponse<Project[]>>("/api/project-templates", payload)
+          .catch(() => null) as { data: ApiResponse<Project[]> } | null;
+          
+        if (response?.data) {
+          console.debug("[Projects] AI response:", response.data);
+          projects = response.data.data ?? [];
+        }
 
         if (!response?.data?.success || projects.length === 0) {
-          aiFailed = true; // AI didn't return anything, so we'll try searching DB
-          console.warn("[Projects] AI generation returned no projects or failed. Falling back to DB search.");
+          aiFailed = true;
           if (response?.data?.message) {
-             // Show AI-specific error if available (e.g., API key missing)
             setError(response.data.message);
           }
         }
@@ -179,45 +180,43 @@ const Projects: React.FC<ProjectsProps> = ({ courseTitle, parentLoading = false 
       if (aiFailed) {
         try {
           console.debug("[Projects] Falling back to DB search via /api/project-suggestions...");
-          const response = await axiosInstance.post<ApiResponse<Project[]>>("/api/project-suggestions", payload).catch(() => null);
-          console.debug("[Projects] DB search response:", response?.data);
+          const response = await axiosInstance
+            .post<ApiResponse<Project[]>>("/api/project-suggestions", payload)
+            .catch(() => null) as { data: ApiResponse<Project[]> } | null;
 
-          projects = response?.data?.data ?? [];
-          const dbNote = response?.data?.note;
-
-          // Only set error if it's not already set by AI failure
-          if (!error) {
-            setError(dbNote); // Use the note from DB search as the error/info message
+          if (response?.data) {
+            console.debug("[Projects] DB search response:", response.data);
+            projects = response.data.data ?? [];
+            const dbNote = response.data.note;
+            if (!error) {
+              setError(dbNote ?? null);
+            }
           }
-          
         } catch (err: any) {
           console.error("Error fetching DB projects:", err);
-          if (!error) { // Don't overwrite a more specific AI error
+          if (!error) {
             setError(err?.response?.data?.message || err?.message || "Failed to fetch projects from database");
           }
         }
       }
-      // --- END NEW LOGIC ---
 
       setProjectPages(Array.isArray(projects) ? projects : []);
 
       if (projects.length === 0 && !error) {
         setError("No project suggestions found for this topic.");
       }
-      
+
       setLoading(false);
     };
 
-    // Only fetch on client
     if (typeof window !== "undefined" && courseTitle) fetchProjects();
     else if (!courseTitle) {
       setLoading(false);
       setError("No course topic specified.");
-    }
-    else {
+    } else {
       setLoading(false);
     }
-  }, [courseTitle]); // Re-run if courseTitle changes
+  }, [courseTitle, error]);
 
   useEffect(() => {
     const checkUserProjects = async () => {
