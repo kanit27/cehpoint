@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     }
 
     // broadened list of candidate fields to search (covers many schema variations)
-    const textFields = [
+    const textFields: string[] = [
       "mainTopic",
       "title",
       "name",
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
       "topics",
       "category",
     ];
-    const arrayFields = ["technologies", "techs", "tags", "skills"];
+    const arrayFields: string[] = ["technologies", "techs", "tags", "skills"];
 
     let templates: any[] = [];
 
@@ -56,9 +56,9 @@ export async function POST(req: NextRequest) {
 
       // If nothing found, try word-by-word matching
       if (!templates || templates.length === 0) {
-        const words = mainTopic.split(/\s+/).filter(Boolean).slice(0, 6);
+        const words: string[] = mainTopic.split(/\s+/).filter(Boolean).slice(0, 6);
         if (words.length > 0) {
-          const wordOrs = words.flatMap((w) => {
+          const wordOrs = words.flatMap((w: string) => {
             const r = new RegExp(escapeRegex(w), "i");
             return [
               ...textFields.map((f) => ({ [f]: { $regex: r } })),
