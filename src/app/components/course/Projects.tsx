@@ -4,7 +4,6 @@
 import React, { useEffect, useState } from "react";
 import { getAuth } from "firebase/auth";
 import { getApps } from "firebase/app";
-import { AxiosResponse } from "axios";
 import axiosInstance from "@/lib/axios";
 import { toast } from "react-toastify";
 import { AiOutlineLoading } from "react-icons/ai";
@@ -106,9 +105,9 @@ const Projects: React.FC<ProjectsProps> = ({ courseTitle, parentLoading = false 
       if (!userEmail) return;
       try {
         // try email lookup first
-        const resp: AxiosResponse<ApiResponse<UserDoc>> | null = await axiosInstance
-          .get(`/api/getusers?email=${encodeURIComponent(userEmail)}`)
-          .catch(() => null);
+        const resp = await axiosInstance.get<ApiResponse<UserDoc>>(
+          `/api/getusers?email=${encodeURIComponent(userEmail)}`
+        ).catch(() => null);
 
         const payload = resp?.data;
         if (payload?.success && payload.data) {
@@ -118,7 +117,7 @@ const Projects: React.FC<ProjectsProps> = ({ courseTitle, parentLoading = false 
         }
 
         // fallback: fetch all users and find by email
-        const allResp: AxiosResponse<ApiResponse<UserDoc[]>> | null = await axiosInstance.get("/api/getusers").catch(() => null);
+        const allResp = await axiosInstance.get<ApiResponse<UserDoc[]>>("/api/getusers").catch(() => null);
         const users = allResp?.data?.data ?? [];
         const found = Array.isArray(users) ? users.find((u) => u.email === userEmail) ?? null : null;
         if (found) {
@@ -149,18 +148,16 @@ const Projects: React.FC<ProjectsProps> = ({ courseTitle, parentLoading = false 
       console.debug("[Projects] request payload:", payload);
 
       let projects: Project[] = [];
-      let note: string | null = null;
       let aiFailed = false;
 
       // --- NEW LOGIC ---
       // Step 1: Try to get AI-generated projects first
       try {
         console.debug("[Projects] Attempting AI generation via /api/project-templates...");
-        const response: AxiosResponse<ApiResponse<Project[]>> = await axiosInstance.post("/api/project-templates", payload);
+        const response = await axiosInstance.post<ApiResponse<Project[]>>("/api/project-templates", payload).catch(() => null);
         console.debug("[Projects] AI response:", response?.data);
 
         projects = response?.data?.data ?? [];
-        note = response?.data?.note ?? null;
 
         if (!response?.data?.success || projects.length === 0) {
           aiFailed = true; // AI didn't return anything, so we'll try searching DB
@@ -180,7 +177,7 @@ const Projects: React.FC<ProjectsProps> = ({ courseTitle, parentLoading = false 
       if (aiFailed) {
         try {
           console.debug("[Projects] Falling back to DB search via /api/project-suggestions...");
-          const response: AxiosResponse<ApiResponse<Project[]>> = await axiosInstance.post("/api/project-suggestions", payload);
+          const response = await axiosInstance.post<ApiResponse<Project[]>>("/api/project-suggestions", payload).catch(() => null);
           console.debug("[Projects] DB search response:", response?.data);
 
           projects = response?.data?.data ?? [];
@@ -226,7 +223,7 @@ const Projects: React.FC<ProjectsProps> = ({ courseTitle, parentLoading = false 
       try {
         // Use GET /api/projects?uid=...
         const uid = firebaseUid || userId;
-        const resp: AxiosResponse<ApiResponse<Project[]>> | null = await axiosInstance.get(`/api/projects?uid=${uid}`).catch(() => null);
+        const resp = await axiosInstance.get<ApiResponse<Project[]>>(`/api/projects?uid=${uid}`).catch(() => null);
         
         const userProjects = resp?.data?.data ?? [];
         
@@ -249,7 +246,7 @@ const Projects: React.FC<ProjectsProps> = ({ courseTitle, parentLoading = false 
     try {
       // This logic seems complex. Is /api/project-templates GET endpoint correct?
       // Assuming it's correct for now.
-      const tplResp: AxiosResponse<ApiResponse<Project[]>> | null = await axiosInstance.get("/api/project-templates").catch(() => null);
+      const tplResp = await axiosInstance.get<ApiResponse<Project[]>>("/api/project-templates").catch(() => null);
       const templates = tplResp?.data?.data ?? [];
       const match = Array.isArray(templates) ? templates.find((t: any) => t.title === projectTitle || t.name === projectTitle) : null;
       if (match && (match as any)._id) {
