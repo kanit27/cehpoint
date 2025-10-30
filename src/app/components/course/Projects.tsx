@@ -4,7 +4,6 @@
 import React, { useEffect, useState } from "react";
 import { getAuth } from "firebase/auth";
 import { getApps } from "firebase/app";
-import { AxiosError } from "axios";
 import axiosInstance from "@/lib/axios";
 import { toast } from "react-toastify";
 import { AiOutlineLoading } from "react-icons/ai";
@@ -168,13 +167,16 @@ const Projects: React.FC<ProjectsProps> = ({ courseTitle, parentLoading = false 
           if (dbResponse.data.note) {
             setError(dbResponse.data.note);
           }
+        } else {
+          setProjectPages(dbResponse.data?.data ?? []);
+          if (dbResponse.data?.note) setError(dbResponse.data.note);
         }
       } catch (err) {
-        const axiosError = err as AxiosError<ApiResponse>;
+        const axiosError = err as any;
         console.error("Error fetching projects:", err);
         setError(
-          axiosError.response?.data?.message || 
-          axiosError.message || 
+          axiosError?.response?.data?.message ||
+          axiosError?.message ||
           "Failed to fetch projects"
         );
       } finally {
@@ -184,6 +186,8 @@ const Projects: React.FC<ProjectsProps> = ({ courseTitle, parentLoading = false 
 
     if (typeof window !== "undefined" && courseTitle) {
       fetchProjects();
+    } else {
+      setLoading(false);
     }
   }, [courseTitle]);
 
@@ -260,9 +264,9 @@ const Projects: React.FC<ProjectsProps> = ({ courseTitle, parentLoading = false 
       toast.success("Project saved successfully");
       setCanCreateProject(false);
     } catch (err) {
-      const axiosError = err as AxiosError<ApiResponse>;
+      const axiosError = err as any;
       console.error("saveProject error:", err);
-      toast.error(axiosError.response?.data?.message || "Failed to save project");
+      toast.error(axiosError?.response?.data?.message || "Failed to save project");
     }
   };
 
