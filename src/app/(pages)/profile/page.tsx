@@ -6,6 +6,7 @@ import Footers from "../../components/Footers";
 import axiosInstance from "../../../lib/axios";
 import { toast } from "react-toastify";
 import { AiOutlineKey, AiOutlineLock, AiOutlineFileImage, AiOutlineYoutube, AiOutlineLoading } from "react-icons/ai";
+import Image from "next/image";
 
 const ProfilePage: React.FC = () => {
     const [mName, setName] = useState<string>("");
@@ -187,7 +188,16 @@ const ProfilePage: React.FC = () => {
                 <div className="max-w-lg mx-auto p-4">
                     <h1 className="text-center font-black text-4xl text-black dark:text-white mb-8">Profile</h1>
                     <div className="bg-slate-500 dark:bg-slate-600 p-6 rounded-lg text-white flex items-center justify-center mb-8">
-                        <img src={profileImg} alt="Profile" className="w-20 h-20 rounded-full object-cover"/>
+                        <div className="w-20 h-20 relative rounded-full overflow-hidden">
+                            <Image
+                                src={profileImg}
+                                alt="Profile"
+                                width={80}
+                                height={80}
+                                className="object-cover"
+                                unoptimized
+                            />
+                        </div>
                         <div className="ml-4">
                             <h2 className="text-2xl font-bold capitalize">{mName}</h2>
                             <p className="text-sm">{email}</p>

@@ -1,92 +1,193 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import TrackUser from "@/lib/models/TrackUser";
+import User from "@/lib/models/User";
 
-function toYMD(d: Date | string) {
-  const dt = typeof d === "string" ? new Date(d) : d;
-  return dt.toISOString().split("T")[0];
-}
-
+/**
+ * Recomputes performance for all users from User collections (projects/courses/quizzes),
+ * updates/creates TrackUser.dailyPerformance and performanceScore, then recomputes streaks.
+ */
 export async function POST(req: NextRequest) {
   await connectDB();
+
   try {
-    const users = await TrackUser.find({});
-    let updatedCount = 0;
+    // Aggregate user-related counts & averages. Collection names follow server controller.
+    const usersWithDetails = await User.aggregate([
+      {
+        $lookup: {
+          from: "project-users", // same as in topCandidateController.js
+          localField: "uid",
+          foreignField: "firebaseUId",
+          as: "projects",
+        },
+      },
+      {
+        $lookup: {
+          from: "courses",
+          localField: "uid",
+          foreignField: "user",
+          as: "courses",
+        },
+      },
+      {
+        $lookup: {
+          from: "quizzes",
+          localField: "uid",
+          foreignField: "userId",
+          as: "quizzes",
+        },
+      },
+      {
+        $addFields: {
+          projectCount: { $size: "$projects" },
+          courseCount: { $size: "$courses" },
+          quizScoreAvg: {
+            $cond: {
+              if: { $gt: [{ $size: "$quizzes" }, 0] },
+              then: { $avg: "$quizzes.score" },
+              else: 0,
+            },
+          },
+          averageProgress: {
+            $cond: {
+              if: { $gt: [{ $size: "$courses" }, 0] },
+              then: { $avg: "$courses.progress" },
+              else: 0,
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          email: 1,
+          mName: 1,
+          profile: 1,
+          role: 1,
+          type: 1,
+          uid: 1,
+          projectCount: 1,
+          courseCount: 1,
+          quizScoreAvg: 1,
+          averageProgress: 1,
+        },
+      },
+    ]);
 
-    for (const user of users) {
-      const rawPerf = (user as any).dailyPerformance || [];
+    const today = new Date();
+    const todayString = today.toISOString().split("T")[0];
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    const yesterdayString = yesterday.toISOString().split("T")[0];
 
-      // Normalize and deduplicate by date (keep entry with highest totalScore)
-      const byDate: Record<string, any> = {};
-      for (const p of rawPerf) {
-        const obj = p?.toObject ? p.toObject() : p;
-        const dateKey = toYMD(obj.date || obj.createdAt || new Date());
-        const totalScore = Number(obj.totalScore || 0);
-        const countVal = typeof obj.count === "number" ? obj.count : 0;
+    // Update or create TrackUser records from aggregated data
+    for (const user of usersWithDetails) {
+      const totalScore =
+        (user.projectCount || 0) +
+        (user.courseCount || 0) +
+        (user.quizScoreAvg || 0) +
+        (user.averageProgress || 0);
 
-        const existing = byDate[dateKey];
-        if (!existing || totalScore > existing.totalScore) {
-          byDate[dateKey] = { date: dateKey, totalScore, count: countVal };
+      let userTrack = await TrackUser.findOne({ uid: user.uid });
+
+      if (userTrack) {
+        // today's performance entry
+        const todayPerformance = userTrack.dailyPerformance.find(
+          (e: any) => new Date(e.date).toISOString().split("T")[0] === todayString
+        );
+
+        const yesterdayPerformance = userTrack.dailyPerformance.find(
+          (e: any) => new Date(e.date).toISOString().split("T")[0] === yesterdayString
+        );
+
+        const yesterdayScore = yesterdayPerformance ? (yesterdayPerformance.totalScore || 0) : 0;
+        const count = (totalScore - yesterdayScore) !== 0 ? 1 : 0;
+
+        if (todayPerformance) {
+          todayPerformance.totalScore = totalScore;
+          todayPerformance.count = count;
+        } else {
+          userTrack.dailyPerformance.push({
+            date: today,
+            totalScore,
+            count,
+          });
         }
+
+        userTrack.performanceScore = {
+          projectCount: user.projectCount || 0,
+          courseCount: user.courseCount || 0,
+          quizScoreAvg: user.quizScoreAvg || 0,
+          averageProgress: user.averageProgress || 0,
+          totalScore,
+        };
+      } else {
+        // create
+        userTrack = new TrackUser({
+          email: user.email,
+          mName: user.mName,
+          type: user.type,
+          uid: user.uid,
+          dailyPerformance: [
+            {
+              date: today,
+              totalScore,
+              count: 0,
+            },
+          ],
+          performanceScore: {
+            projectCount: user.projectCount || 0,
+            courseCount: user.courseCount || 0,
+            quizScoreAvg: user.quizScoreAvg || 0,
+            averageProgress: user.averageProgress || 0,
+            totalScore,
+          },
+          strick: 0,
+          max_strick: 0,
+        });
       }
 
-      // Turn map into sorted array (ascending)
-      let perf = Object.values(byDate).sort(
+      await userTrack.save();
+    }
+
+    // Recompute streaks for all TrackUser documents (same logic as controller)
+    const allTracks = await TrackUser.find();
+    for (const t of allTracks) {
+      let maxStreak = t.max_strick || 0;
+      let currentStreak = 0;
+
+      const sortedPerformance = (t.dailyPerformance || []).slice().sort(
         (a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime()
       );
 
-      // Recalculate count: 1 when totalScore increased vs previous day
-      let prevScore = 0;
-      for (let i = 0; i < perf.length; i++) {
-        const entry = perf[i];
-        const currScore = Number(entry.totalScore || 0);
-        entry.count = currScore - prevScore > 0 ? 1 : 0;
-        prevScore = currScore;
-      }
+      let previousDate: Date | null = null;
 
-      // Recalculate streaks (consecutive days with count === 1)
-      let maxStreak = user.max_strick || 0;
-      let currentStreak = 0;
-      let prevDate: string | null = null;
-
-      for (const entry of perf) {
-        const curDate = entry.date;
-        if (prevDate) {
-          const dayDiff = Math.round(
-            (new Date(curDate).getTime() - new Date(prevDate).getTime()) / (1000 * 60 * 60 * 24)
+      for (const entry of sortedPerformance) {
+        const currentDate = new Date(entry.date);
+        if (previousDate) {
+          const dayDifference = Math.round(
+            (currentDate.getTime() - previousDate.getTime()) / (1000 * 60 * 60 * 24)
           );
-          if (dayDiff === 1 && entry.count === 1) {
+          if (dayDifference === 1 && entry.count === 1) {
             currentStreak += 1;
-          } else {
+          } else if (dayDifference > 1 || entry.count === 0) {
             maxStreak = Math.max(maxStreak, currentStreak);
             currentStreak = entry.count === 1 ? 1 : 0;
           }
         } else {
           currentStreak = entry.count === 1 ? 1 : 0;
         }
-        prevDate = curDate;
+        previousDate = currentDate;
       }
+
       maxStreak = Math.max(maxStreak, currentStreak);
-
-      // Map perf back to mongoose-friendly objects (dates as Date)
-      const updatedDaily = perf.map((p: any) => ({
-        date: new Date(p.date + "T00:00:00.000Z"),
-        totalScore: p.totalScore,
-        count: p.count,
-      }));
-
-      // Apply updates and save
-      (user as any).dailyPerformance = updatedDaily;
-      (user as any).strick = currentStreak;
-      (user as any).max_strick = maxStreak;
-
-      await user.save();
-      updatedCount++;
+      t.strick = currentStreak;
+      t.max_strick = maxStreak;
+      await t.save();
     }
 
-    return NextResponse.json({ success: true, updatedCount });
+    return NextResponse.json({ success: true, message: "Performance updated and streaks recomputed" });
   } catch (error: any) {
-    console.error("updateCountsForAllUsers error:", error);
-    return NextResponse.json({ success: false, error: error?.message || "Server error" }, { status: 500 });
+    console.error("Error updating performance data:", error);
+    return NextResponse.json({ success: false, message: error?.message || "Server error" }, { status: 500 });
   }
 }

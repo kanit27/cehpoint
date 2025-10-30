@@ -6,6 +6,7 @@ import Footers from "../../../components/Footers";
 import axiosInstance from "../../../../lib/axios";
 import { toast } from "react-toastify";
 import YouTube from "react-youtube";
+import Image from "next/image";
 import { AiOutlineLoading } from "react-icons/ai";
 import {
   IoChatbubbleEllipses,
@@ -483,11 +484,15 @@ const CoursePage = () => {
 
                     {content.image && !content.youtube && (
                       <div className="my-6">
-                        <img
-                          src={content.image}
-                          alt={activeTopic.subtopicTitle}
-                          className="w-full h-auto max-h-[500px] object-contain rounded-lg"
-                        />
+                        <div className="relative w-full h-[500px] max-h-[60vh]">
+                          <Image
+                            src={content.image}
+                            alt={activeTopic.subtopicTitle}
+                            fill
+                            className="object-contain rounded-lg"
+                            sizes="(max-width: 640px) 100vw, 800px"
+                          />
+                        </div>
                       </div>
                     )}
 
