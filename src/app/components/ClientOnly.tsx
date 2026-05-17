@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 
 interface ClientOnlyProps {
   children: React.ReactNode;
-  ssr: boolean;
+  ssr?: boolean;
 }
 
 export default function ClientOnly({ children, ssr = false }: ClientOnlyProps) {

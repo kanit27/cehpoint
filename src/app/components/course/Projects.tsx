@@ -141,7 +141,7 @@ const Projects: React.FC<ProjectsProps> = ({ courseTitle, parentLoading = false 
       setError(null);
       
       try {
-        const storedConfig = typeof window !== "undefined" ? safeParse(localStorage.getItem("projectConfig")) : {};
+        const storedConfig = typeof window !== "undefined" ? safeParse(sessionStorage.getItem("projectConfig")) : {};
         const apiKey = typeof window !== "undefined" ? sessionStorage.getItem("apiKey") : null;
         const payload = {
           mainTopic: storedConfig?.mainTopic || courseTitle || "",
@@ -246,15 +246,21 @@ const Projects: React.FC<ProjectsProps> = ({ courseTitle, parentLoading = false 
     }
 
     try {
+      const effectiveFirebaseUid = firebaseUid || userId || sessionStorage.getItem("uid") || "";
       const payload = {
-        projectTitle: selectedProject.title,
+        title: selectedProject.title,
         description: selectedProject.description || "",
         difficulty: selectedProject.difficulty || "Beginner",
         time: selectedProject.timeEstimate || selectedProject.time || "3-7 days",
         userId: userId || undefined,
         email: userEmail || "",
         completed: false,
-        firebaseUId: firebaseUid || undefined,
+        firebaseUId: effectiveFirebaseUid,
+        category: selectedProject.category || "",
+        mainTopic: courseTitle,
+        technologies: selectedProject.technologies || [],
+        learningObjectives: selectedProject.learningObjectives || [],
+        deliverables: selectedProject.deliverables || [],
       };
 
       await axiosInstance.post("/api/projects", payload);
@@ -355,9 +361,32 @@ const Projects: React.FC<ProjectsProps> = ({ courseTitle, parentLoading = false 
               </button>
               {!canCreateProject && <p className="text-red-500 text-sm mt-2">You must complete your current project first.</p>}
 
-              <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Selected Project</h3>
-                <p className="mt-2 text-gray-700 dark:text-gray-300 text-lg">{selectedProject.title}</p>
+              <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg text-left">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">Selected Project Details</h3>
+                <p className="text-gray-700 dark:text-gray-300 mb-2"><strong>Title:</strong> {selectedProject.title}</p>
+                {selectedProject.description && <p className="text-gray-700 dark:text-gray-300 mb-2"><strong>Description:</strong> {selectedProject.description}</p>}
+                <p className="text-gray-700 dark:text-gray-300 mb-2"><strong>Difficulty:</strong> {selectedProject.difficulty || "Beginner"}</p>
+                <p className="text-gray-700 dark:text-gray-300 mb-2"><strong>Time:</strong> {selectedProject.timeEstimate || selectedProject.time || "3-7 days"}</p>
+                {selectedProject.category && <p className="text-gray-700 dark:text-gray-300 mb-2"><strong>Category:</strong> {selectedProject.category}</p>}
+                {selectedProject.technologies && selectedProject.technologies.length > 0 && (
+                  <p className="text-gray-700 dark:text-gray-300 mb-2"><strong>Technologies:</strong> {selectedProject.technologies.join(", ")}</p>
+                )}
+                {selectedProject.learningObjectives && selectedProject.learningObjectives.length > 0 && (
+                  <div className="mb-2">
+                    <strong className="text-gray-900 dark:text-white">Learning Objectives:</strong>
+                    <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 mt-1">
+                      {selectedProject.learningObjectives.map((obj, i) => <li key={i}>{obj}</li>)}
+                    </ul>
+                  </div>
+                )}
+                {selectedProject.deliverables && selectedProject.deliverables.length > 0 && (
+                  <div className="mb-2">
+                    <strong className="text-gray-900 dark:text-white">Deliverables:</strong>
+                    <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 mt-1">
+                      {selectedProject.deliverables.map((del, i) => <li key={i}>{del}</li>)}
+                    </ul>
+                  </div>
+                )}
               </div>
             </div>
           )}

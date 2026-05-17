@@ -65,7 +65,14 @@ export async function POST(req: NextRequest) {
       }
     ]`;
     
-    const model = genAI.getGenerativeModel({ model: "gemma-4-26b-a4b-it", safetySettings });
+    const model = genAI.getGenerativeModel({
+      model: "gemma-4-26b-a4b-it",
+      safetySettings,
+      generationConfig: {
+        maxOutputTokens: 1536,
+        temperature: 0.4,
+      },
+    });
     const result = await model.generateContent(prompt);
     const rawText = result.response.text();
     

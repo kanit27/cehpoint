@@ -22,7 +22,7 @@ interface Project {
 }
 
 const MyProjectPage: React.FC = () => {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{ uid: string } | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [showCompleteModal, setShowCompleteModal] = useState<string | null>(null);
   const [showGithubModal, setShowGithubModal] = useState<string | null>(null);
@@ -83,8 +83,8 @@ const MyProjectPage: React.FC = () => {
 
   const fetchProjects = async (uid: string) => {
     try {
-      const response = await axiosInstance.get("/api/getmyprojects");
-      const data: Project[] = (response as any).data?.data || [];
+      const response = await axiosInstance.get<{ data: Project[] }>("/api/getmyprojects");
+      const data: Project[] = response.data?.data || [];
       const filtered = data.filter((p) => p.firebaseUId === uid);
       setProjects(filtered);
     } catch (error) {
@@ -297,6 +297,7 @@ const MyProjectPage: React.FC = () => {
                 width={380}
                 height={260}
                 className="max-w-sm h-3/6"
+                priority
               />
               <p className="text-black font-black dark:text-white text-xl">
                 Nothing Found

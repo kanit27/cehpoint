@@ -7,7 +7,6 @@ export interface ICourse extends Document {
   content: string;
   type: string;
   mainTopic: string;
-  subTopic: string;
   photo: string;
   date: Date;
   end: Date;
@@ -20,7 +19,6 @@ const courseSchema = new Schema({
   content: { type: String, required: true },
   type: { type: String },
   mainTopic: { type: String },
-  subTopic: { type: String },
   photo: { type: String },
   date: { type: Date, default: Date.now },
   end: { type: Date, default: Date.now },

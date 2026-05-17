@@ -1,6 +1,6 @@
 // context/SkillsContext.tsx
 
-"use client"; // Essential: This context uses state and localStorage.
+"use client"; // Essential: This context uses state and sessionStorage.
 
 import React, { createContext, useState, useEffect, useContext, ReactNode, Dispatch, SetStateAction } from 'react';
 
@@ -72,23 +72,23 @@ export const SkillsProvider: React.FC<SkillsProviderProps> = ({ children }) => {
   // Initialize state with a default object to prevent hydration errors.
   const [skills, setSkills] = useState<SkillsData>(initialSkillsState);
 
-  // This useEffect will run once on the client to load data from localStorage.
+  // This useEffect will run once on the client to load data from sessionStorage.
   useEffect(() => {
     try {
-      const savedSkills = localStorage.getItem('skills');
+      const savedSkills = sessionStorage.getItem('skills');
       if (savedSkills) {
         setSkills(JSON.parse(savedSkills));
       }
     } catch (error) {
-      console.error("Failed to parse skills from localStorage", error);
+      console.error("Failed to parse skills from sessionStorage", error);
     }
   }, []); // Empty dependency array ensures it runs only on mount.
 
-  // This useEffect saves the skills to localStorage whenever they change.
+  // This useEffect saves the skills to sessionStorage whenever they change.
   useEffect(() => {
-    // Save skills to localStorage only if there is a name to avoid overwriting with initial state.
+    // Save skills to sessionStorage only if there is a name to avoid overwriting with initial state.
     if (skills.name) {
-      localStorage.setItem('skills', JSON.stringify(skills));
+      sessionStorage.setItem('skills', JSON.stringify(skills));
     }
   }, [skills]);
 

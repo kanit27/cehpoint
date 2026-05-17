@@ -20,7 +20,9 @@ export async function POST(req: NextRequest) {
     }
 
     const newUser = new User({
-      email, mName, password, type, uid, profile, apiKey, unsplashApiKey,
+      email, mName, password, type, uid, profile,
+      apiKey: apiKey || process.env.API_KEY,
+      unsplashApiKey: unsplashApiKey || process.env.UNSPLASH_ACCESS_KEY,
       verified: false
     });
     

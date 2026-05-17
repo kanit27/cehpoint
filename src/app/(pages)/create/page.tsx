@@ -20,7 +20,7 @@ const CreatePage: React.FC = () => {
   const [processing, setProcessing] = useState(false);
   const [topic, setTopic] = useState("");
   const [lang, setLang] = useState("English");
-  const [selectedType, setSelectedType] = useState("Video & Text Course");
+  const [selectedType, setSelectedType] = useState("Video & Theory Course");
   const [coursesCreatedToday, setCoursesCreatedToday] = useState(0);
   const [showApiKeyErrorPopup, setShowApiKeyErrorPopup] = useState(false);
   const [showUpdateKeyPrompt, setShowUpdateKeyPrompt] = useState(false);
@@ -447,8 +447,8 @@ The JSON format must be:
                     type="radio"
                     id="videocourse"
                     name="value1"
-                    value="Video & Text Course"
-                    checked={selectedType === "Video & Text Course"}
+                    value="Video & Theory Course"
+                    checked={selectedType === "Video & Theory Course"}
                     onChange={handleRadioChangeType}
                     className="text-black border-black dark:text-white dark:border-white dark:focus:text-black focus:ring-black dark:focus:ring-white dark:focus:bg-black"
                   />

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createApi } from "unsplash-js";
 
 const unsplash = createApi({
-  accessKey: process.env.UNSPLASH_API_KEY || "",
+  accessKey: process.env.UNSPLASH_ACCESS_KEY || "",
 });
 
 export async function POST(req: NextRequest) {

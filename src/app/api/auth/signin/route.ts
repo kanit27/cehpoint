@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
     const { email, password, firebaseUid } = await req.json();
     const user = await User.findOne({ email });
 
-    if (!user || user.password !== password) {
+    if (!user || !(await user.comparePassword(password))) {
       return NextResponse.json({ success: false, message: "Invalid email or password" }, { status: 401 });
     }
 

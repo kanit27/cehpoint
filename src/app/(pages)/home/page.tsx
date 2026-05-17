@@ -13,7 +13,8 @@ const HomePage: React.FC = () => {
 
     useEffect(() => {
         // We access sessionStorage here, inside useEffect, to ensure this code only runs on the client.
-        const id = sessionStorage.getItem('uid');
+        // Use the MongoDB _id for course queries; fall back to uid if not found
+        const id = sessionStorage.getItem('_id') || sessionStorage.getItem('uid');
         setUserId(id);
 
         if (id) {

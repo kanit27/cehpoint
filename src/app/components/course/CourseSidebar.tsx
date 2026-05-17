@@ -70,7 +70,7 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
               onClick={() => handleToggleTopic(topic.title)}
               className="flex justify-between items-center w-full py-2 text-left font-bold text-black dark:text-white"
               aria-expanded={openTopic === topic.title}
-              aria-controls={`topic-${topic.title}`}
+              aria-controls={`topic-${topic.title.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '')}`}
             >
               <span className="w-[90%] truncate">{topic.title}</span>
               {openTopic === topic.title ? <IoIosArrowUp /> : <IoIosArrowDown />}
@@ -78,7 +78,7 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
 
             {openTopic === topic.title && (
               <div
-                id={`topic-${topic.title}`}
+                id={`topic-${topic.title.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '')}`}
                 className="pl-2 mt-1 border-l-[1px] border-gray-200 dark:border-gray-700"
               >
                 {topic.subtopics.map((subtopic: any) => (

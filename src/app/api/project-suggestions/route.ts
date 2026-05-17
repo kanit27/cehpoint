@@ -6,6 +6,25 @@ function escapeRegex(text: string) {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+const FALLBACK_PROJECTS: Record<string, any[]> = {
+  "stock market": [
+    { title: "Stock Portfolio Tracker", category: "Finance", description: "Build a personal portfolio tracker that fetches real-time stock prices and visualizes profit/loss across your investments.", difficulty: "Intermediate", timeEstimate: "5-7 days", learningObjectives: ["API integration", "Data visualization", "Portfolio math"], deliverables: ["Working dashboard with charts", "Portfolio CRUD operations"], technologies: ["React", "Node.js", "Alpha Vantage API", "Chart.js"] },
+    { title: "Stock Price Predictor Using ML", category: "Finance", description: "Train a machine learning model to predict short-term stock price movements using historical data.", difficulty: "Advanced", timeEstimate: "7-10 days", learningObjectives: ["Time series forecasting", "Feature engineering", "Model evaluation"], deliverables: ["Trained model with accuracy metrics", "Prediction dashboard"], technologies: ["Python", "scikit-learn", "Pandas", "Streamlit"] },
+    { title: "Real-Time Stock Market Dashboard", category: "Finance", description: "Create a live dashboard that tracks multiple stocks, news sentiment, and market indices in real time.", difficulty: "Intermediate", timeEstimate: "5-8 days", learningObjectives: ["WebSocket integration", "Real-time data processing", "Dashboard design"], deliverables: ["Live updating dashboard", "News sentiment widget"], technologies: ["React", "Socket.io", "Finnhub API", "D3.js"] },
+    { title: "Automated Trading Bot Simulator", category: "Finance", description: "Design a paper-trading bot that executes mock trades based on moving average crossovers and RSI indicators.", difficulty: "Advanced", timeEstimate: "7-10 days", learningObjectives: ["Algorithmic trading strategies", "Backtesting", "Risk management"], deliverables: ["Backtest engine", "Simulated trading log"], technologies: ["Python", "pandas", "Backtrader", "Yahoo Finance API"] },
+    { title: "Stock Market Education Platform", category: "Education", description: "Build an interactive learning platform that teaches stock market basics through quizzes and simulations.", difficulty: "Beginner", timeEstimate: "3-5 days", learningObjectives: ["Content structuring", "Interactive quiz mechanics", "Progress tracking"], deliverables: ["Quiz module", "Progress dashboard"], technologies: ["Next.js", "MongoDB", "Tailwind CSS"] },
+    { title: "Earnings Call Analyzer", category: "Finance", description: "Analyze earnings call transcripts to extract sentiment, key metrics, and generate summaries.", difficulty: "Intermediate", timeEstimate: "5-7 days", learningObjectives: ["NLP sentiment analysis", "Text summarization", "Data extraction"], deliverables: ["Transcript analyzer", "Sentiment report"], technologies: ["Python", "NLTK", "Hugging Face", "Flask"] },
+  ],
+};
+
+function getFallbackProjects(topic: string): any[] {
+  const lower = topic.toLowerCase();
+  for (const [key, projects] of Object.entries(FALLBACK_PROJECTS)) {
+    if (lower.includes(key)) return projects;
+  }
+  return [];
+}
+
 export async function POST(req: NextRequest) {
   await connectDB();
 
@@ -15,18 +34,25 @@ export async function POST(req: NextRequest) {
     const mainTopic = mainTopicRaw;
     console.log("[project-suggestions] mainTopic:", mainTopic);
 
-    // If collection empty, detect and return sample keys to help debug schema mismatch
     const totalTemplates = await ProjectTemplate.countDocuments().catch(() => 0);
     if (totalTemplates === 0) {
+      const fallback = getFallbackProjects(mainTopic);
+      if (fallback.length > 0) {
+        return NextResponse.json({
+          success: true,
+          data: fallback,
+          count: fallback.length,
+          note: "Showing curated templates for this topic.",
+        });
+      }
       return NextResponse.json({
         success: true,
         data: [],
         count: 0,
-        note: "ProjectTemplate collection is empty. Seed templates or check DB connection.",
+        note: "No projects available for this topic yet.",
       });
     }
 
-    // broadened list of candidate fields to search (covers many schema variations)
     const textFields: string[] = [
       "mainTopic",
       "title",
@@ -47,14 +73,11 @@ export async function POST(req: NextRequest) {
       const escaped = escapeRegex(mainTopic);
       const regex = new RegExp(escaped, "i");
 
-      // build $or conditions for text fields
       const orClauses: any[] = textFields.map((f) => ({ [f]: { $regex: regex } }));
-      // for array-like fields, use $elemMatch
       arrayFields.forEach((f) => orClauses.push({ [f]: { $elemMatch: { $regex: regex } } }));
 
       templates = await ProjectTemplate.find({ $or: orClauses }).limit(200).lean();
 
-      // If nothing found, try word-by-word matching
       if (!templates || templates.length === 0) {
         const words: string[] = mainTopic.split(/\s+/).filter(Boolean).slice(0, 6);
         if (words.length > 0) {
@@ -75,15 +98,12 @@ export async function POST(req: NextRequest) {
     const count = (templates && templates.length) || 0;
     console.log(`[project-suggestions] found ${count} templates for topic="${mainTopic}"`);
 
-    // If still empty, sample one document and return its field names in note to guide schema fix
     if (!templates || templates.length === 0) {
-      const sample = await ProjectTemplate.findOne().lean();
-      const sampleKeys = sample ? Object.keys(sample).slice(0, 40) : [];
-      const fallback = await ProjectTemplate.find({}).limit(10).lean();
-      const note = sample
-        ? `No direct matches. ProjectTemplate sample fields: ${sampleKeys.join(", ")} — adapt search fields to your schema or seed templates.`
-        : "No matches and no sample doc available.";
-      return NextResponse.json({ success: true, data: fallback || [], count: (fallback || []).length, note });
+      const fallback = getFallbackProjects(mainTopic);
+      if (fallback.length > 0) {
+        return NextResponse.json({ success: true, data: fallback, count: fallback.length, note: "Showing curated templates for this topic." });
+      }
+      return NextResponse.json({ success: true, data: [], count: 0, note: "No projects available for this topic yet." });
     }
 
     return NextResponse.json({ success: true, data: templates, count });

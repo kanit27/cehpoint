@@ -6,14 +6,19 @@ export interface IProject extends Document {
   description: string;
   difficulty: string;
   time: string;
-  userId: string;
-  firebaseUId: string;
+  userId?: string;
+  firebaseUId?: string;
   email: string;
   completed: boolean;
   github_url?: string;
   video_url?: string;
   approve: 'pending' | 'accepted' | 'rejected';
   dateCreated: Date;
+  category?: string;
+  mainTopic?: string;
+  technologies?: string[];
+  learningObjectives?: string[];
+  deliverables?: string[];
 }
 
 const projectSchema: Schema<IProject> = new mongoose.Schema(
@@ -22,14 +27,19 @@ const projectSchema: Schema<IProject> = new mongoose.Schema(
     description: { type: String, required: true },
     difficulty: { type: String, required: true },
     time: { type: String, required: true },
-    userId: { type: String, required: true },
-    firebaseUId: { type: String, required: true },
+    userId: { type: String },
+    firebaseUId: { type: String },
     email: { type: String, required: true },
     completed: { type: Boolean, default: false, required: true },
     github_url: { type: String },
     video_url: { type: String },
     approve: { type: String, enum: ['pending', 'accepted', 'rejected'], default: 'pending' },
     dateCreated: { type: Date, default: Date.now },
+    category: { type: String },
+    mainTopic: { type: String },
+    technologies: [{ type: String }],
+    learningObjectives: [{ type: String }],
+    deliverables: [{ type: String }],
   },
   { collection: "project-users" }
 );

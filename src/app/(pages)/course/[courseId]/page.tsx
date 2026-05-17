@@ -22,7 +22,8 @@ import CircularProgressBar from "@/app/components/course/CircularProgressBar";
 import MarkdownRenderer from "@/app/components/course/MarkdownRenderer";
 import ChatDrawer from "@/app/components/course/ChatDrawer";
 import Quiz from "@/app/components/course/Quiz"; // Import the new Quiz component
-import Projects from "@/app/components/course/Projects"; // Import the new Projects component
+import Projects from "@/app/components/course/Projects";
+import ErrorBoundary from "@/app/components/ErrorBoundary";
 
 const CoursePage = () => {
   const router = useRouter();
@@ -107,6 +108,21 @@ const CoursePage = () => {
             autoClose: false,
           }) 
         : null;
+
+      const loadingMessages = [
+        "Searching for relevant videos...",
+        "Generating AI-powered theory...",
+        "Almost there, finalizing content...",
+      ];
+      let msgIndex = 0;
+      const loadingInterval = !options?.silent ? setInterval(() => {
+        if (toastId) {
+          toast.update(toastId, {
+            render: loadingMessages[msgIndex % loadingMessages.length],
+          });
+          msgIndex++;
+        }
+      }, 4000) : null;
 
       if (!options?.silent) setIsGenerating(true);
       try {
@@ -193,6 +209,7 @@ const CoursePage = () => {
         }
         return { success: false };
       } finally {
+        if (loadingInterval) clearInterval(loadingInterval);
         if (!options?.silent) setIsGenerating(false);
       }
     },
@@ -570,4 +587,10 @@ const CoursePage = () => {
   );
 };
 
-export default CoursePage;
+export default function CoursePageWithErrorBoundary() {
+  return (
+    <ErrorBoundary>
+      <CoursePage />
+    </ErrorBoundary>
+  );
+}

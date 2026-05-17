@@ -6,6 +6,12 @@ import { AiOutlineLoading } from "react-icons/ai";
 import axiosInstance from "../../../lib/axios";
 import { toast } from "react-toastify";
 
+interface QuizQuestion {
+  question: string;
+  options: string[];
+  answer: string;
+}
+
 interface QuizProps {
   courseTitle: string;
   courseId: string;
@@ -13,7 +19,7 @@ interface QuizProps {
 }
 
 const Quiz: React.FC<QuizProps> = ({ courseTitle, courseId, userId }) => {
-  const [questions, setQuestions] = useState<any[]>([]);
+  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [score, setScore] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -28,7 +34,7 @@ const Quiz: React.FC<QuizProps> = ({ courseTitle, courseId, userId }) => {
       // Call the new dynamic quiz generation endpoint
       const response = await axiosInstance.post<{
         success: boolean;
-        questions: any[];
+        questions: QuizQuestion[];
         message?: string;
       }>("/api/quiz/generate", { courseId });
       

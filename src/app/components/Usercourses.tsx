@@ -94,7 +94,10 @@ const UserCourses: React.FC<UserCoursesProps> = ({ userId }) => {
           <Image
             alt="Nothing found"
             src={foundImg}
+            width={500}
+            height={500}
             className="max-w-sm h-3/6"
+            priority
           />
           <p className="text-black font-black dark:text-white text-xl">
             Nothing Found

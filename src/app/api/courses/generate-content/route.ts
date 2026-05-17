@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   await connectDB();
   try {
     const { courseId, topicTitle, subtopicTitle } = await req.json();
-    const course = await Course.findById(courseId);
+    const course = await Course.findById(courseId).lean() as any;
     if (!course) return NextResponse.json({ success: false, message: "Course not found" }, { status: 404 });
 
     let content = typeof course.content === 'string' ? JSON.parse(course.content) : course.content;
@@ -25,79 +25,76 @@ export async function POST(req: NextRequest) {
     const subtopic = topic.subtopics?.find((st: any) => st.title === subtopicTitle);
     if (!subtopic) return NextResponse.json({ success: false, message: "Subtopic not found" }, { status: 404 });
 
-    // --- 1. Generate YouTube Video (in a safe block) ---
-    try {
-      const videoResults = await youtubesearchapi.GetListByKeyword(`${subtopicTitle} tutorial ${topicTitle}`, false, 5, [{ type: "video" }]);
-      if (videoResults.items.length > 0) {
-          const videoData = videoResults.items.map((video: any) => ({ id: video.id, title: video.title }));
-          const similarities = videoData.map((video: any) => ({ ...video, similarity: compareTwoStrings(`${subtopicTitle} ${topicTitle}`, video.title) }));
-          const mostRelevantVideo = similarities.reduce((prev: any, current: any) => (current.similarity > prev.similarity ? current : prev));
-          subtopic.youtube = mostRelevantVideo.id;
-      } else {
+    // --- 1 & 2: Generate YouTube Video + AI Theory in PARALLEL ---
+    const [videoResult, theoryResult] = await Promise.allSettled([
+      // YouTube search
+      (async () => {
+        try {
+          const videoResults = await youtubesearchapi.GetListByKeyword(`${subtopicTitle} tutorial ${topicTitle}`, false, 5, [{ type: "video" }]);
+          if (videoResults.items.length > 0) {
+            const videoData = videoResults.items.map((video: any) => ({ id: video.id, title: video.title }));
+            const similarities = videoData.map((video: any) => ({ ...video, similarity: compareTwoStrings(`${subtopicTitle} ${topicTitle}`, video.title) }));
+            const mostRelevantVideo = similarities.reduce((prev: any, current: any) => (current.similarity > prev.similarity ? current : prev));
+            subtopic.youtube = mostRelevantVideo.id;
+          } else {
+            subtopic.youtube = '';
+          }
+        } catch (videoError) {
+          console.error("YouTube search failed:", videoError);
           subtopic.youtube = '';
-      }
-    } catch (videoError) {
-        console.error("YouTube search failed:", videoError);
-        subtopic.youtube = '';
-    }
+        }
+      })(),
+      // AI theory generation
+      (async () => {
+        try {
+          const model = genAI.getGenerativeModel({
+            model: "gemma-4-26b-a4b-it",
+            generationConfig: {
+              maxOutputTokens: 1536,
+              temperature: 0.7,
+            },
+          });
+          const prompt = `You are an expert instructor and senior developer creating a lesson for a course.
+          Your task is to provide a comprehensive, clear, and easy-to-follow explanation for the subtopic: "${subtopicTitle}", which is part of the larger topic: "${topicTitle}".
+          Your response MUST be formatted in well-structured Markdown and follow this exact lesson plan:
+          1.  **Introduction (## What is ${subtopicTitle}?)**
+              * Start with a brief, high-level overview.
+              * Use a simple analogy to explain the core concept to a beginner.
+          2.  **Importance (## Why is it Important?)**
+              * Explain the problem this concept solves or why a developer should learn it.
+              * Provide 2-3 key benefits in a bulleted list.
+          3.  **Core Concepts / How it Works (## Core Concepts)**
+              * Break down the topic into its most important parts.
+              * Use '###' subheadings for each distinct part.
+              * Use **bold text** to highlight key terminology.
+              * Use backticks (\`) for inline code, package names, or commands (e.g., \`firebase auth\`).
+          4.  **Practical Code Example (## Practical Code Example)**
+              * Provide a clear, concise, and well-commented code block.
+              * Use triple backticks with the correct language identifier (e.g., \`\`\`javascript or \`\`\`jsx).
+              * Follow the code block with a brief explanation of what the code is doing.
+          5.  **Key Takeaways (## Key Takeaways)**
+              * Summarize the most critical points of the lesson in a bulleted list. This should be a quick review for the student.
+          CRITICAL: Do not include a main title for the entire document. The first line of your response must be the "## What is..." heading. Ensure the total length is at least 400 words to provide sufficient detail.`;
 
-    // Note: Images are already generated during course creation, so we don't regenerate them here
-    // This prevents mixing of concerns and avoids redundant API calls
-    
-    // --- 2. Generate Theory with the NEW Markdown-focused prompt ---
-    try { 
-      const model = genAI.getGenerativeModel({ model: "gemma-4-26b-a4b-it" });
-      const prompt = `You are an expert instructor and senior developer creating a lesson for a course.
-      Your task is to provide a comprehensive, clear, and easy-to-follow explanation for the subtopic: "${subtopicTitle}", which is part of the larger topic: "${topicTitle}".
+          const result = await model.generateContent(prompt);
+          const generatedText = result.response.text();
 
-      Your response MUST be formatted in well-structured Markdown and follow this exact lesson plan:
-
-      1.  **Introduction (## What is ${subtopicTitle}?)**
-          * Start with a brief, high-level overview.
-          * Use a simple analogy to explain the core concept to a beginner.
-
-      2.  **Importance (## Why is it Important?)**
-          * Explain the problem this concept solves or why a developer should learn it.
-          * Provide 2-3 key benefits in a bulleted list.
-
-      3.  **Core Concepts / How it Works (## Core Concepts)**
-          * Break down the topic into its most important parts.
-          * Use '###' subheadings for each distinct part.
-          * Use **bold text** to highlight key terminology.
-          * Use backticks (\`) for inline code, package names, or commands (e.g., \`firebase auth\`).
-
-      4.  **Practical Code Example (## Practical Code Example)**
-          * Provide a clear, concise, and well-commented code block.
-          * Use triple backticks with the correct language identifier (e.g., \`\`\`javascript or \`\`\`jsx).
-          * Follow the code block with a brief explanation of what the code is doing.
-
-      5.  **Key Takeaways (## Key Takeaways)**
-          * Summarize the most critical points of the lesson in a bulleted list. This should be a quick review for the student.
-
-      CRITICAL: Do not include a main title for the entire document. The first line of your response must be the "## What is..." heading. Ensure the total length is at least 400 words to provide sufficient detail.`;
-
-      const theoryResult = await model.generateContent(prompt);
-      const generatedText = theoryResult.response.text();
-      
-      if (!generatedText || generatedText.trim().length === 0) {
-        subtopic.theory = "### Error\nThe AI did not generate any content. Please try again.";
-      } else {
-        subtopic.theory = generatedText;
-      }
-    } catch (aiError) {
-        console.error("AI content generation failed:", aiError);
-        subtopic.theory = "### Error\nSorry, the AI could not generate content for this topic. Please try again later.";
-    }
+          if (!generatedText || generatedText.trim().length === 0) {
+            subtopic.theory = "### Error\nThe AI did not generate any content. Please try again.";
+          } else {
+            subtopic.theory = generatedText;
+          }
+        } catch (aiError) {
+          console.error("AI content generation failed:", aiError);
+          subtopic.theory = "### Error\nSorry, the AI could not generate content for this topic. Please try again later.";
+        }
+      })(),
+    ]);
     
     subtopic.done = true;
-    course.content = JSON.stringify(content);
-    await course.save();
+    await Course.findByIdAndUpdate(courseId, { content: JSON.stringify(content) });
 
-    // Convert to plain object to avoid Mongoose serialization issues
-    const courseObject = course.toObject();
-    courseObject.content = JSON.stringify(content);
-
-    return NextResponse.json({ success: true, course: courseObject });
+    return NextResponse.json({ success: true, course: { ...course, content: JSON.stringify(content) } });
   } catch (error: any) {
     console.error("Overall error in generate-content:", error);
     return NextResponse.json({ success: false, message: error.message || "An error occurred while generating content" }, { status: 500 });

@@ -68,8 +68,6 @@ const SignUpPage: React.FC = () => {
         type: "free",
         uid: user.uid,
         profile,
-        apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-        unsplashApiKey: process.env.NEXT_PUBLIC_UNSPLASH_API_KEY,
       });
 
       const data = response.data as { success: boolean; message: string };

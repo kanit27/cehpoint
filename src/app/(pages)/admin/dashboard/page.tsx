@@ -2,21 +2,63 @@
 'use client';
 
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import AdminSidebar from "../../../components/admin/AdminSidebar";
 import AdminHead from "../../../components/admin/AdminHead";
 import DashboardCards from "../../../components/admin/DashboardCards";
 import axiosInstance from "../../../../lib/axios";
 import { toast } from "react-toastify";
 
+interface ProfileResponse {
+  success: boolean;
+  userProfile: { role: string };
+}
+
+interface DashboardData {
+  users?: number;
+  courses?: number;
+  projects?: number;
+  quizResults?: number;
+}
+
 const DashboardPage: React.FC = () => {
-  const [data, setData] = useState<any>({});
+  const router = useRouter();
+  const [data, setData] = useState<DashboardData>({});
   const [loading, setLoading] = useState(true);
+  const [authorized, setAuthorized] = useState(false);
   const [inputValue, setInputValue] = useState("");
 
   useEffect(() => {
+    async function checkRole() {
+      const role = sessionStorage.getItem("role");
+      if (role === "admin") {
+        setAuthorized(true);
+        return;
+      }
+      const uid = sessionStorage.getItem("uid");
+      if (uid) {
+        try {
+          const res = await axiosInstance.get<ProfileResponse>(`/api/user/profile?uid=${uid}`);
+          const userRole = res.data?.userProfile?.role;
+          if (userRole === "admin") {
+            sessionStorage.setItem("role", "admin");
+            setAuthorized(true);
+            return;
+          }
+        } catch {
+          // ignore
+        }
+      }
+      router.push("/home");
+    }
+    checkRole();
+  }, [router]);
+
+  useEffect(() => {
+    if (!authorized) return;
     async function dashboardData() {
       try {
-        const response = await axiosInstance.post(`/api/dashboard`);
+        const response = await axiosInstance.post<DashboardData>(`/api/dashboard`);
         setData(response.data);
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
@@ -26,7 +68,7 @@ const DashboardPage: React.FC = () => {
       }
     }
     dashboardData();
-  }, []);
+  }, [authorized]);
 
   const handleInputSubmit = async () => {
     try {
@@ -38,6 +80,8 @@ const DashboardPage: React.FC = () => {
       toast.error("Failed to update API key.");
     }
   };
+
+  if (!authorized) return null;
 
   return (
     <div className="flex h-screen bg-white dark:bg-black">

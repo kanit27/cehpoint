@@ -31,15 +31,21 @@ export async function POST(req: NextRequest) {
 
   try {
     let model;
+    const generationConfig = {
+      maxOutputTokens: 1024,
+      temperature: 0.7,
+    };
+
     if (useUserApiKey && userApiKey) {
       const genAIuser = new GoogleGenerativeAI(userApiKey);
         model = genAIuser.getGenerativeModel({
           model: "gemma-4-26b-a4b-it",
           safetySettings,
+          generationConfig,
         });
 
     } else {
-      model = genAI.getGenerativeModel({ model: "gemma-4-26b-a4b-it", safetySettings });
+      model = genAI.getGenerativeModel({ model: "gemma-4-26b-a4b-it", safetySettings, generationConfig });
     }
 
     const result = await model.generateContent(prompt);

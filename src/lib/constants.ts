@@ -46,3 +46,14 @@ export const profession: string = "Founder & CEO at Cehpoint";
 export const photoURL: string =
   "https://play-lh.googleusercontent.com/sV_ffBmBJt_je4RZHnfaCfcnL-Hy6C14Iol7H5EMj9fzI2GDOonuojdn5t9p6n9IAX8j";
 
+// Pricing plans
+export const FreeType = "Free";
+export const FreeCost = "$0";
+export const FreeTime = "/Lifetime";
+export const MonthType = "Monthly";
+export const MonthCost = "$10";
+export const MonthTime = "month";
+export const YearType = "Yearly";
+export const YearCost = "$100";
+export const YearTime = "year";
+

@@ -290,7 +290,7 @@ const PerformancePage: React.FC = () => {
           </span>
         </div>
         <div className="flex items-center justify-center overflow-x-auto overflow-y-hidden w-full">
-          <div className="w-[200%] md:w-[80%] flex items-center justify-center flex-col">
+          <div className="w-full md:w-[80%] flex items-center justify-center flex-col">
             <CalendarHeatmap
               startDate={moment().startOf("year").toDate()}
               endDate={moment().endOf("year").toDate()}

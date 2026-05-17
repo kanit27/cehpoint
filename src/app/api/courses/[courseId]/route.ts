@@ -10,7 +10,7 @@ export async function GET(
   await connectDB();
   try {
     const { courseId } = await params;
-    const course = await Course.findById(courseId);
+    const course = await Course.findById(courseId).lean() as any;
     if (!course) {
       return NextResponse.json({ success: false, message: "Course not found" }, { status: 404 });
     }

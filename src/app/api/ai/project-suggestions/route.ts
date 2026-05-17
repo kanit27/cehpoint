@@ -33,6 +33,10 @@ export async function POST(req: NextRequest) {
     const model = genAI.getGenerativeModel({
       model: "gemma-4-26b-a4b-it",
       safetySettings,
+      generationConfig: {
+        maxOutputTokens: 512,
+        temperature: 0.7,
+      },
     });
     const result = await model.generateContent(
       `Generate project suggestions based on: ${prompt}`
