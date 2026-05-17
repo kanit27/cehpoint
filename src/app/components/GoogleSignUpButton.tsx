@@ -3,7 +3,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { signInWithPopup } from 'firebase/auth';
-import { auth, googleProvider } from '../../lib/firebase';
+import { getFirebaseAuth, getFirebaseProvider } from '../../lib/firebase';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
@@ -31,6 +31,11 @@ const GoogleSignUpButton: React.FC<GoogleSignUpButtonProps> = ({ text, showToast
 
   const handleGoogleSignIn = async () => {
     try {
+      const auth = getFirebaseAuth();
+      const googleProvider = getFirebaseProvider();
+      if (!auth || !googleProvider) {
+        throw new Error('Firebase auth not initialized');
+      }
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
 

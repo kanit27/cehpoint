@@ -22,15 +22,31 @@ let googleProvider!: GoogleAuthProvider;
 function initFirebase() {
   if (typeof window === "undefined") return;
   if (app) return;
-  app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-  auth = getAuth(app);
-  db = getFirestore(app);
-  storage = getStorage(app);
-  googleProvider = new GoogleAuthProvider();
-  googleProvider.addScope('profile');
-  googleProvider.addScope('email');
+  try {
+    app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+    auth = getAuth(app);
+    db = getFirestore(app);
+    storage = getStorage(app);
+    googleProvider = new GoogleAuthProvider();
+    googleProvider.addScope('profile');
+    googleProvider.addScope('email');
+  } catch (e) {
+    console.error("Firebase initialization failed:", e);
+  }
 }
 
 initFirebase();
+
+export function getFirebaseAuth() {
+  if (auth) return auth;
+  initFirebase();
+  return auth;
+}
+
+export function getFirebaseProvider() {
+  if (googleProvider) return googleProvider;
+  initFirebase();
+  return googleProvider;
+}
 
 export { app, auth, db, storage, googleProvider };
