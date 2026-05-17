@@ -1,9 +1,8 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
+import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
+import { getAuth, GoogleAuthProvider, Auth } from "firebase/auth";
+import { getFirestore, Firestore } from "firebase/firestore";
+import { getStorage, FirebaseStorage } from "firebase/storage";
 
-// Your web app's Firebase configuration using Next.js environment variables
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -14,15 +13,24 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase for SSR and client-side, preventing re-initialization
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
-const googleProvider = new GoogleAuthProvider();
+let app!: FirebaseApp;
+let auth!: Auth;
+let db!: Firestore;
+let storage!: FirebaseStorage;
+let googleProvider!: GoogleAuthProvider;
 
-// Requesting email and profile scopes from Google
-googleProvider.addScope('profile');
-googleProvider.addScope('email');
+function initFirebase() {
+  if (typeof window === "undefined") return;
+  if (app) return;
+  app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+  auth = getAuth(app);
+  db = getFirestore(app);
+  storage = getStorage(app);
+  googleProvider = new GoogleAuthProvider();
+  googleProvider.addScope('profile');
+  googleProvider.addScope('email');
+}
+
+initFirebase();
 
 export { app, auth, db, storage, googleProvider };

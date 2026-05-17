@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -21,7 +23,7 @@ interface SignInResponse {
   userData: Record<string, string>;
 }
 const SignInPage: React.FC = () => {
-  const auth = getAuth();
+  const [auth, setAuth] = useState<any>(null);
   const router = useRouter();
 
   const [email, setEmail] = useState("");
@@ -30,6 +32,7 @@ const SignInPage: React.FC = () => {
   const [storedTheme, setStoredTheme] = useState<string | null>(null);
 
   useEffect(() => {
+    setAuth(getAuth());
     if (sessionStorage.getItem("auth")) {
       router.push("/home");
     }
@@ -58,6 +61,7 @@ const SignInPage: React.FC = () => {
 
     try {
       setProcessing(true);
+      if (!auth) { showToast("Auth not ready. Please refresh."); return; }
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       const firebaseUid = user.uid;

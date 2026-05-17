@@ -1,6 +1,8 @@
 // app/pages/Signup.tsx
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -18,8 +20,8 @@ import axiosInstance from "../../../lib/axios";
 import img from "../../assets/signup.svg";
 
 const SignUpPage: React.FC = () => {
-  const auth = getAuth();
   const router = useRouter();
+  const [auth, setAuth] = useState<any>(null);
 
   const [mName, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -29,6 +31,10 @@ const SignUpPage: React.FC = () => {
   const [profile] = useState(
     "https://firebasestorage.googleapis.com/v0/b/ai-based-training-platfo-ca895.appspot.com/o/user.png?alt=media&token=cdde4ad1-26e7-4edb-9f7b-a3172fbada8d"
   );
+
+  useEffect(() => {
+    setAuth(getAuth());
+  }, []);
 
   useEffect(() => {
     if (sessionStorage.getItem("auth")) {
@@ -58,6 +64,7 @@ const SignUpPage: React.FC = () => {
 
     try {
       setProcessing(true);
+      if (!auth) { showToast("Auth not ready. Please refresh."); return; }
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
