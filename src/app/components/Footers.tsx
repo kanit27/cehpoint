@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
 import Image from "next/image";
 import LogoUrl from "../assets/logo.svg";
 import DarkLogoUrl from "../assets/darkLogo.svg";
@@ -24,20 +23,8 @@ const Footers: React.FC<FootersProps> = ({ className }) => {
         </a>
         <div className="text-xs flex items-start justify-end -mt-3 font-semibold">
           <span className="flex items-start max-sm:flex-col justify-center gap-y-2">
-            <Link href="/about" className="text-black font-bold mx-4 dark:text-white">
-              About
-            </Link>
-            <Link href="/privacy" className="text-black font-bold mx-4 dark:text-white">
-              Privacy Policy
-            </Link>
           </span>
           <span className="flex items-start max-sm:flex-col justify-center gap-y-2">
-            <Link href="/terms" className="text-black font-bold mx-4 dark:text-white">
-              Terms
-            </Link>
-            <Link href="/contact" className="text-black font-bold mx-4 dark:text-white">
-              Contact
-            </Link>
           </span>
         </div>
       </div>
