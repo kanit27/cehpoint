@@ -5,7 +5,6 @@ import Course from '@/lib/models/Course';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import youtubesearchapi from 'youtube-search-api';
 import { compareTwoStrings } from 'string-similarity';
-import axios from 'axios';
 
 // Note: We no longer need showdown here
 const genAI = new GoogleGenerativeAI(process.env.API_KEY || "");
@@ -17,8 +16,8 @@ export async function POST(req: NextRequest) {
     const course = await Course.findById(courseId);
     if (!course) return NextResponse.json({ success: false, message: "Course not found" }, { status: 404 });
 
-    const mainTopicKey = course.mainTopic.toLowerCase();
-    let content = JSON.parse(course.content);
+    let content = typeof course.content === 'string' ? JSON.parse(course.content) : course.content;
+    const mainTopicKey = Object.keys(content)[0];
 
     const topic = content[mainTopicKey]?.find((t: any) => t.title === topicTitle);
     if (!topic) return NextResponse.json({ success: false, message: "Topic not found" }, { status: 404 });
@@ -41,10 +40,13 @@ export async function POST(req: NextRequest) {
         console.error("YouTube search failed:", videoError);
         subtopic.youtube = '';
     }
+
+    // Note: Images are already generated during course creation, so we don't regenerate them here
+    // This prevents mixing of concerns and avoids redundant API calls
     
     // --- 2. Generate Theory with the NEW Markdown-focused prompt ---
     try { 
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemma-4-26b-a4b-it" });
       const prompt = `You are an expert instructor and senior developer creating a lesson for a course.
       Your task is to provide a comprehensive, clear, and easy-to-follow explanation for the subtopic: "${subtopicTitle}", which is part of the larger topic: "${topicTitle}".
 
@@ -75,8 +77,13 @@ export async function POST(req: NextRequest) {
       CRITICAL: Do not include a main title for the entire document. The first line of your response must be the "## What is..." heading. Ensure the total length is at least 400 words to provide sufficient detail.`;
 
       const theoryResult = await model.generateContent(prompt);
-      // We now save the raw markdown text directly
-      subtopic.theory = theoryResult.response.text();
+      const generatedText = theoryResult.response.text();
+      
+      if (!generatedText || generatedText.trim().length === 0) {
+        subtopic.theory = "### Error\nThe AI did not generate any content. Please try again.";
+      } else {
+        subtopic.theory = generatedText;
+      }
     } catch (aiError) {
         console.error("AI content generation failed:", aiError);
         subtopic.theory = "### Error\nSorry, the AI could not generate content for this topic. Please try again later.";
@@ -86,10 +93,13 @@ export async function POST(req: NextRequest) {
     course.content = JSON.stringify(content);
     await course.save();
 
-    // Return the updated course object directly
-    return NextResponse.json({ success: true, course });
+    // Convert to plain object to avoid Mongoose serialization issues
+    const courseObject = course.toObject();
+    courseObject.content = JSON.stringify(content);
+
+    return NextResponse.json({ success: true, course: courseObject });
   } catch (error: any) {
     console.error("Overall error in generate-content:", error);
-    return NextResponse.json({ success: false, message: "An error occurred while generating content" }, { status: 500 });
+    return NextResponse.json({ success: false, message: error.message || "An error occurred while generating content" }, { status: 500 });
   }
 }

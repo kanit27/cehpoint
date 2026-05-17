@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash",
+      model: "gemma-4-26b-a4b-it",
       safetySettings,
     });
     const result = await model.generateContent(

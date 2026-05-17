@@ -21,10 +21,10 @@ const ChatDrawer: React.FC<ChatDrawerProps> = ({ isOpen, onClose, messages, newM
     return (
         <div className="fixed inset-0 z-50 flex justify-end">
             {/* Background overlay */}
-            <div className="fixed inset-0 bg-black/40" onClick={onClose}></div>
+            <div className="fixed inset-0 bg-black/50" onClick={onClose}></div>
             
             {/* Drawer */}
-            <div className="relative w-full max-w-md h-full bg-white dark:bg-black flex flex-col shadow-xl">
+            <div className="relative w-full max-w-xl h-full bg-white dark:bg-black flex flex-col shadow-xl">
                 <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
                     <h2 className="font-bold text-lg text-black dark:text-white">AI Assistant for {mainTopic}</h2>
                     <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">

@@ -15,7 +15,9 @@ const userSchema = new mongoose.Schema({
   },
   type: String,
   uid: { type: String, required: true, unique: true },
-  // ... add all other fields from your User.js model
+  apiKey: String,
+  unsplashApiKey: String,
+  verified: { type: Boolean, default: false },
 });
 
 // This line prevents the model from being re-compiled on hot reloads

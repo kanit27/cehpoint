@@ -119,11 +119,33 @@ const CreatePage: React.FC = () => {
     }
 
     // Prompt for AI
-    const prompt = `Generate a structured list of topics for the main title "${topic.toLowerCase()}", designed as a course outline. Arrange each topic to cover progressively advanced concepts in a logical order, starting with foundational knowledge and building up to skills suitable for internships or entry-level job roles. Ensure the required subtopics ${subtopics
-      .join(", ")
-      .toLowerCase()} appear in this basic-to-advanced flow, even if their complexity varies. Leave the fields "theory", "youtube", "image", and "aiExplanation" empty.
+    const prompt = `Generate a comprehensive and structured course outline for "${topic.toLowerCase()}". 
+    
+Create a complete curriculum with 8-10 main topics that progress from foundational concepts to advanced skills suitable for internships or entry-level job roles.
 
-Please output the list in the following valid JSON format strictly in English, with property names enclosed in double quotes and no comments:
+REFERENCE AREAS (use these as suggestions for topics to include, but generate many MORE):
+${subtopics.map((s) => `- ${s}`).join("\n")}
+
+IMPORTANT REQUIREMENTS:
+1. Generate MANY MORE topics beyond the reference areas above
+2. Use the reference areas as inspiration/guidance for what to cover, not as the complete list
+3. Create a well-rounded course that includes:
+   - Foundational/Basic concepts first
+   - Core/Intermediate topics
+   - Advanced/Specialized topics
+   - Practical applications and real-world use cases
+4. Ensure logical progression from beginner-friendly to advanced
+5. Each main topic should have 3-5 related subtopics
+6. Leave the fields "theory", "youtube", "image", and "aiExplanation" empty
+
+IMPORTANT: Your response must be a SINGLE valid JSON object. 
+- Do NOT include any introductory text.
+- Do NOT include any markdown formatting (like \`\`\`json).
+- Do NOT include a JSON schema or examples.
+- Do NOT include any explanations or constraints after the JSON.
+- Output ONLY the raw JSON object.
+
+The JSON format must be:
 {
   "${topic.toLowerCase()}": [
     {
@@ -146,14 +168,57 @@ Please output the list in the following valid JSON format strictly in English, w
       const response = await axiosInstance.post("/api/ai/prompt", { prompt });
       const data = response.data as { generatedText: string };
 
-  const generatedText = data.generatedText;
-  const cleanedJsonString = generatedText
-    .replace(/```json/g, "")
-    .replace(/```/g, "")
-    .trim();
+      const generatedText = data.generatedText;
 
+      const extractJson = (text: string) => {
+        // 1. Try markdown blocks from last to first
+        const markdownMatches = [...text.matchAll(/```json\s*([\s\S]*?)\s*```/g)];
+        for (let i = markdownMatches.length - 1; i >= 0; i--) {
+          try {
+            return JSON.parse(markdownMatches[i][1].trim());
+          } catch (e) { }
+        }
+
+        // 2. Try finding the last balanced JSON object
+        const lastBrace = text.lastIndexOf('}');
+        if (lastBrace !== -1) {
+          let openBraces = 0;
+          for (let i = lastBrace; i >= 0; i--) {
+            if (text[i] === '}') openBraces++;
+            if (text[i] === '{') openBraces--;
+            if (openBraces === 0) {
+              try {
+                return JSON.parse(text.substring(i, lastBrace + 1));
+              } catch (e) { }
+            }
+          }
+        }
+
+        // 3. Final fallback: Try to find any balanced object from last to first
+        const allOpenBraces = [];
+        const allCloseBraces = [];
+        for (let i = 0; i < text.length; i++) {
+          if (text[i] === '{') allOpenBraces.push(i);
+          if (text[i] === '}') allCloseBraces.push(i);
+        }
+
+        for (let i = allCloseBraces.length - 1; i >= 0; i--) {
+          const closeIdx = allCloseBraces[i];
+          for (let j = allOpenBraces.length - 1; j >= 0; j--) {
+            const openIdx = allOpenBraces[j];
+            if (openIdx < closeIdx) {
+              try {
+                return JSON.parse(text.substring(openIdx, closeIdx + 1));
+              } catch (e) { }
+            }
+          }
+        }
+        throw new Error("No valid JSON found");
+      };
+
+      let parsedJson;
       try {
-        const parsedJson = JSON.parse(cleanedJsonString);
+        parsedJson = extractJson(generatedText);
         sessionStorage.setItem("jsonData", JSON.stringify(parsedJson));
         sessionStorage.setItem("mainTopic", topic.toLowerCase());
         sessionStorage.setItem("courseLang", lang);
@@ -164,6 +229,8 @@ Please output the list in the following valid JSON format strictly in English, w
         );
         router.push("/topics");
       } catch (jsonError) {
+        console.error("JSON Parse Error:", jsonError);
+        console.error("Generated Text:", generatedText);
         toast.error(
           "The AI returned an invalid format. Please try generating the outline again."
         );
@@ -178,7 +245,7 @@ Please output the list in the following valid JSON format strictly in English, w
       } else {
         toast.error(
           error.response?.data?.message ||
-            "Failed to generate course outline. Please try again."
+          "Failed to generate course outline. Please try again."
         );
       }
     } finally {

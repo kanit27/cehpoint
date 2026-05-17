@@ -1,8 +1,13 @@
 "use client";
 
 import Landing from "./(pages)/landing/page";
-
+import ClientOnly from "./components/ClientOnly";
 
 export default function HomePage() {
-  return <Landing />;
+  return (
+    <ClientOnly>
+      <Landing />
+    </ClientOnly>
+  );
 }
+

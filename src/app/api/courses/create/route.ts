@@ -4,7 +4,7 @@ import connectDB from "../../../../lib/db";
 import Course from "../../../../lib/models/Course";
 import { createApi } from "unsplash-js";
 
-const unsplash = createApi({ accessKey: process.env.UNSPLASH_ACCESS_KEY || "" });
+const unsplash = createApi({ accessKey: process.env.UNSPLASH_API_KEY || "" });
 
 export async function POST(req: NextRequest) {
   await connectDB();
@@ -26,12 +26,38 @@ export async function POST(req: NextRequest) {
         photo = result.response.results[0].urls.regular;
       }
     } catch (e) {
-      console.error("Unsplash error:", e);
+      console.error("Unsplash main photo error:", e);
     }
+
+    // Fetch images for each subtopic in the course content
+    let parsedContent = JSON.parse(content);
+    const topicKey = Object.keys(parsedContent)[0];
+    if (topicKey && parsedContent[topicKey]) {
+      const topics = parsedContent[topicKey];
+      for (const topic of topics) {
+        for (const subtopic of topic.subtopics) {
+          if (!subtopic.image || subtopic.image === "") {
+            try {
+              const subResult = await unsplash.search.getPhotos({
+                query: subtopic.title,
+                perPage: 1,
+                orientation: "landscape",
+              });
+              if (subResult.response?.results[0]) {
+                subtopic.image = subResult.response.results[0].urls.regular;
+              }
+            } catch (subError) {
+              console.error(`Unsplash error for subtopic ${subtopic.title}:`, subError);
+            }
+          }
+        }
+      }
+    }
+    const updatedContent = JSON.stringify(parsedContent);
 
     const newCourse = new Course({
         user,
-        content,
+        content: updatedContent,
         type,
         mainTopic,
         photo,

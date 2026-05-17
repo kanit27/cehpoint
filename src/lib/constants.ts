@@ -12,8 +12,8 @@ interface Review {
 // BRAND
 export const mainname: string = "Cehpoint";
 export const subname: string = "E-Learning AI Solutions";
-export const name: string = "Cehpoint E-Learning AI Solutions";
-export const company: string = "Cehpoint E-Learning & Cybersecurity AI Solutions";
+export const name: string = "Cehpoint";
+export const company: string = "Cehpoint";
 export const websiteURL: string = "/";
 export const logo: string =
   "https://firebasestorage.googleapis.com/v0/b/ai-based-training-platfo-ca895.appspot.com/o/ai-technology.png?alt=media&token=6d27fd25-93e6-4b0e-b39e-3228e82668b6";
@@ -41,19 +41,8 @@ export const reviews: Review[] = [
 
 export const review: string =
   "The AI Course Generator revolutionized my content creation process, providing accurate and relevant topics effortlessly. It's a time-saving powerhouse that enhances the quality and relevance of my courses. A must-have tool for educators seeking efficiency and impactful online learning experiences.";
-export const from: string = "Jit Banerjee (Officially Sujan Banerjee )";
+export const from: string = "Kanit Gohel";
 export const profession: string = "Founder & CEO at Cehpoint";
 export const photoURL: string =
   "https://play-lh.googleusercontent.com/sV_ffBmBJt_je4RZHnfaCfcnL-Hy6C14Iol7H5EMj9fzI2GDOonuojdn5t9p6n9IAX8j";
 
-export const FreeType = "Free";
-export const FreeCost = "₹0";
-export const FreeTime = "Lifetime";
-
-export const MonthType = "Monthly";
-export const MonthCost = "₹299";
-export const MonthTime = "month";
-
-export const YearType = "Yearly";
-export const YearCost = "₹1999";
-export const YearTime = "year";

@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
     // Evaluate existing templates via AI — cast model to any for TS safety
     let evaluations: any[] = [];
     try {
-      const evaluationModel: any = genAI.getGenerativeModel?.({ model: "gemini-2.0-flash", safetySettings }) || (genAI as any);
+      const evaluationModel: any = genAI.getGenerativeModel?.({ model: "gemma-4-26b-a4b-it", safetySettings }) || (genAI as any);
       const evalPrompt = `
 I have a topic: "${mainTopic}" and a list of projects. For each project return JSON with { "projectIndex": i, "score": 0-10 }.
 Projects:
@@ -90,7 +90,7 @@ Respond ONLY with valid JSON: { "evaluations": [{ "projectIndex": 0, "score": 8 
     // Ask AI to generate new templates
     let generatedProjects: any[] = [];
     try {
-      const generationModel: any = genAI.getGenerativeModel?.({ model: "gemini-2.0-flash", safetySettings }) || (genAI as any);
+      const generationModel: any = genAI.getGenerativeModel?.({ model: "gemma-4-26b-a4b-it", safetySettings }) || (genAI as any);
       const genPrompt = `
 Generate up to 6 hands-on project templates for the exact topic: "${mainTopic}".
 Output must be valid JSON array of objects: each object { "title","mainTopic","category","description","difficulty","timeEstimate","learningObjectives":[], "deliverables":[], "technologies": [] }.

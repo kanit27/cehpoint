@@ -10,7 +10,7 @@ import { AiOutlineLoading } from "react-icons/ai";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { createUserWithEmailAndPassword, getAuth } from "firebase/auth";
 
-import { mainname, subname, websiteURL, name as appName, company } from "../../../lib/constants";
+import { mainname, websiteURL, name as appName, company } from "../../../lib/constants";
 // import DarkModeToggle from "../../components/DarkModeToggle";
 // import LogoComponent from "../../components/LogoComponent";
 import GoogleSignUpButton from "../../components/GoogleSignUpButton";
@@ -117,7 +117,6 @@ const SignUpPage: React.FC = () => {
               {/* <LogoComponent isDarkMode={storedTheme} /> */}
               <span className="self-center whitespace-nowrap text-2xl flex items-start justify-center flex-col font-black dark:text-white ">
                 <h1 className="font-black">{mainname}</h1>
-                <em className="text-sm font-semibold">{subname}</em>
               </span>
             </Link>
             {/* <DarkModeToggle /> */}
@@ -127,7 +126,7 @@ const SignUpPage: React.FC = () => {
             <h1 className="text-center font-black text-5xl text-black dark:text-white">
               SignUp
             </h1>
-            <p className="text-center font-normal text-red-600 py-4 dark:text-red-400 animate-pulse">
+            <p className="text-center font-normal text-red-600 py-4 dark:text-red-400 animate-pulse hidden">
               Email and password signup is temporarily unavailable.
             </p>
 
@@ -142,7 +141,7 @@ const SignUpPage: React.FC = () => {
                   onChange={(e) => setName(e.target.value)}
                   id="name1"
                   type="text"
-                  disabled={true}
+                  disabled={false}
                   className="focus:ring-black focus:border-black border border-black font-normal bg-white rounded-none block w-full dark:bg-black dark:border-white dark:text-white"
                 />
               </div>
@@ -156,7 +155,7 @@ const SignUpPage: React.FC = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   id="email1"
                   type="email"
-                  disabled={true}
+                  disabled={false}
                   className="focus:ring-black focus:border-black border border-black font-normal bg-white rounded-none block w-full dark:bg-black dark:border-white dark:text-white"
                 />
               </div>
@@ -170,14 +169,14 @@ const SignUpPage: React.FC = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   id="password"
                   type="password"
-                  disabled={true}
+                  disabled={false}
                   className="focus:ring-black focus:border-black border border-black font-normal bg-white rounded-none block w-full dark:bg-black dark:border-white dark:text-white"
                 />
               </div>
               <div className="mb-4">
                 <button
                   type="submit"
-                  disabled={true}
+                  disabled={false}
                   className="flex items-center justify-center text-center dark:bg-white dark:text-black bg-black text-white font-bold rounded-none w-full hover:bg-black focus:bg-black focus:ring-transparent dark:hover:bg-white dark:focus:bg-white dark:focus:ring-transparent py-2"
                 >
                   {processing ? (

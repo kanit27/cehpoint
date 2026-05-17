@@ -16,10 +16,10 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
       <div
-        className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg shadow ${
+        className={`max-w-xs lg:max-w-md px-2 py-2 rounded-lg shadow ${
           isUser
-            ? 'bg-blue-600 text-white'
-            : 'bg-gray-200 dark:bg-gray-700 text-black dark:text-white'
+            ? 'bg-blue-600 text-white text-sm'
+            : 'bg-gray-200 dark:bg-gray-700 text-black dark:text-white text-sm'
         }`}
         dangerouslySetInnerHTML={{ __html: message.text }}
       />

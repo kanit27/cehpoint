@@ -43,7 +43,7 @@ const Footers: React.FC<FootersProps> = ({ className }) => {
       </div>
       <hr className="border-t border-black dark:border-white my-4" />
       <div className="text-black dark:text-white text-xs font-semibold pb-4">
-        &copy; {2024} <a href={websiteURL} className="hover:underline">{company}</a>
+        &copy; {2026} <a href={websiteURL} className="hover:underline">{company}</a>
       </div>
     </footer>
   );

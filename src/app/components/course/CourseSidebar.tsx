@@ -5,7 +5,7 @@ import React, { useState, useEffect } from "react";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 import { FaCheck } from "react-icons/fa";
 import Link from "next/link";
-import { mainname, subname } from "@/lib/constants";
+import { mainname } from "@/lib/constants";
 import LogoComponent from "../LogoComponent";
 import { useTheme } from "../../../context/ThemeContext";
 
@@ -58,7 +58,6 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
             <LogoComponent isDarkMode={theme} />
             <span className="flex flex-col">
               <h1 className="font-black text-2xl dark:text-white">{mainname}</h1>
-              <em className="text-sm font-semibold dark:text-white">{subname}</em>
             </span>
           </span>
         </Link>

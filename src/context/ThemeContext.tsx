@@ -20,15 +20,20 @@ interface ThemeProviderProps {
 
 // 4. Create the ThemeProvider component
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  // Initialize theme from sessionStorage or system preference
-  const [theme, setTheme] = useState<boolean>(() => {
-    if (typeof window !== "undefined") {
-      const stored = sessionStorage.getItem("darkMode");
-      if (stored !== null) return stored === "true";
-      return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  // Initialize theme to a default value to prevent hydration mismatch
+  const [theme, setTheme] = useState<boolean>(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    // Initialize theme from sessionStorage or system preference on mount
+    const stored = sessionStorage.getItem("darkMode");
+    if (stored !== null) {
+      setTheme(stored === "true");
+    } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      setTheme(true);
     }
-    return false;
-  });
+  }, []);
 
   useEffect(() => {
     // Keep in sync with sessionStorage and html class

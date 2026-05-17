@@ -99,6 +99,15 @@ const CoursePage = () => {
       subtopicTitle: string,
       options?: { silent?: boolean }
     ) => {
+      const toastId = !options?.silent 
+        ? toast.loading("Generating content, please wait...", {
+            position: "bottom-center",
+            closeButton: false,
+            draggable: false,
+            autoClose: false,
+          }) 
+        : null;
+
       if (!options?.silent) setIsGenerating(true);
       try {
         const response = await axiosInstance.post(
@@ -115,20 +124,73 @@ const CoursePage = () => {
           message?: string;
         };
 
+        console.log("Generate content response:", data);
+
         if (data.success && data.course) {
           const updatedCourse = data.course;
-          const parsedContent = JSON.parse(updatedCourse.content);
-          setCourseData({ ...updatedCourse, content: parsedContent });
+          
+          // Handle both string and object content
+          let parsedContent: any;
+          if (typeof updatedCourse.content === 'string') {
+            parsedContent = JSON.parse(updatedCourse.content);
+          } else {
+            parsedContent = updatedCourse.content;
+          }
+          
+          console.log("Parsed content:", parsedContent);
+          
+          // Update course data
+          const newCourseData = { ...updatedCourse, content: parsedContent };
+          setCourseData(newCourseData);
+          
+          // Immediately update content after generation
+          const mainTopicKey = Object.keys(parsedContent)[0];
+          console.log("Main topic key:", mainTopicKey);
+          
+          if (mainTopicKey) {
+            const topic = parsedContent[mainTopicKey]?.find(
+              (t: any) => t.title === topicTitle
+            );
+            console.log("Found topic:", topic?.title);
+            
+            if (topic) {
+              const subtopic = topic.subtopics.find(
+                (st: any) => st.title === subtopicTitle
+              );
+              console.log("Found subtopic:", subtopic?.title, "Theory length:", subtopic?.theory?.length);
+              
+              if (subtopic) {
+                setContent(subtopic);
+                if (toastId) toast.dismiss(toastId);
+              } else {
+                throw new Error("Subtopic not found in response");
+              }
+            } else {
+              throw new Error("Topic not found in response");
+            }
+          } else {
+            throw new Error("Invalid content structure in response");
+          }
+          
           return {
             success: true,
-            course: { ...updatedCourse, content: parsedContent },
+            course: newCourseData,
           };
         } else {
-          toast.error(data.message || "Failed to generate content.");
-          return { success: false };
+          throw new Error(data.message || "Failed to generate content");
         }
-      } catch {
-        toast.error("Failed to generate content.");
+      } catch (error: any) {
+        console.error("Error in generateContentForSubtopic:", error);
+        if (toastId) {
+          toast.update(toastId, {
+            render: error.message || "Failed to generate content.",
+            type: "error",
+            isLoading: false,
+            autoClose: 3000,
+          });
+        } else {
+          toast.error(error.message || "Failed to generate content.");
+        }
         return { success: false };
       } finally {
         if (!options?.silent) setIsGenerating(false);
@@ -138,53 +200,14 @@ const CoursePage = () => {
   );
 
   const handleSelectSubtopic = useCallback(
-    async (topicTitle: string, subtopicTitle: string) => {
+    (topicTitle: string, subtopicTitle: string) => {
       if (typeof window !== "undefined" && window.innerWidth < 768) {
         setIsSidebarOpen(false);
       }
-      if (!courseData) return;
-
-      const mainTopicKey = courseData.mainTopic.toLowerCase();
-      const topic = courseData.content[mainTopicKey]?.find(
-        (t: any) => t.title === topicTitle
-      );
-      const subtopic = topic?.subtopics.find(
-        (st: any) => st.title === subtopicTitle
-      );
-
-      if (subtopic && (subtopic.theory || subtopic.youtube || subtopic.image)) {
-        setActiveTopic({ topicTitle, subtopicTitle });
-        setView("content");
-        return;
-      }
-
-      const toastId = toast.loading("Please Wait", {
-        position: "bottom-center",
-        closeButton: false,
-        draggable: false,
-        autoClose: false,
-      });
-
-      const result = await generateContentForSubtopic(
-        topicTitle,
-        subtopicTitle,
-        { silent: true }
-      );
-
-      if (result.success) {
-        toast.dismiss(toastId);
-        setActiveTopic({ topicTitle, subtopicTitle });
-        setView("content");
-      } else {
-        toast.update(toastId, {
-          render: "Failed to generate content. Please try again.",
-          type: "error",
-          isLoading: false,
-          autoClose: 3000,
-        });
-      }
+      setActiveTopic({ topicTitle, subtopicTitle });
+      setView("content");
     },
-    [courseData, generateContentForSubtopic]
+    []
   );
 
   useEffect(() => {
@@ -223,7 +246,8 @@ const CoursePage = () => {
 
   useEffect(() => {
     if (courseData && activeTopic) {
-      const mainTopicKey = courseData.mainTopic.toLowerCase();
+      const contentKeys = Object.keys(courseData.content);
+      const mainTopicKey = contentKeys[0];
       const topic = courseData.content[mainTopicKey]?.find(
         (t: any) => t.title === activeTopic.topicTitle
       );
@@ -231,9 +255,11 @@ const CoursePage = () => {
         (st: any) => st.title === activeTopic.subtopicTitle
       );
 
-      if (subtopic && (subtopic.theory || subtopic.youtube || subtopic.image)) {
+      // Only consider theory and youtube as indicators of complete content
+      // Image is pre-generated during course creation and should not block content generation
+      if (subtopic && (subtopic.theory || subtopic.youtube)) {
         setContent(subtopic);
-      } else if (subtopic) {
+      } else if (subtopic && !isGenerating) {
         generateContentForSubtopic(
           activeTopic.topicTitle,
           activeTopic.subtopicTitle
@@ -241,7 +267,7 @@ const CoursePage = () => {
       }
       updateProgress();
     }
-  }, [courseData, activeTopic, generateContentForSubtopic, updateProgress]);
+  }, [courseData, activeTopic, updateProgress, generateContentForSubtopic, isGenerating]);
 
   useEffect(() => {
     if (courseData?.mainTopic) {
@@ -278,7 +304,7 @@ const CoursePage = () => {
   };
 
   const navigateSubtopic = useCallback(
-    async (direction: "next" | "prev") => {
+    (direction: "next" | "prev") => {
       if (!courseData || !activeTopic) return;
       const mainTopicKey = courseData.mainTopic.toLowerCase();
       const topics = courseData.content[mainTopicKey] || [];
@@ -321,46 +347,15 @@ const CoursePage = () => {
       const targetTopic = topics[targetTopicIndex];
       const targetSub = targetTopic.subtopics[targetSubIndex];
 
-      if (
-        targetSub &&
-        (targetSub.theory || targetSub.youtube || targetSub.image)
-      ) {
+      if (targetSub) {
         setActiveTopic({
           topicTitle: targetTopic.title,
           subtopicTitle: targetSub.title,
         });
         setView("content");
-      } else {
-        const toastId = toast.loading("Please Wait", {
-          position: "bottom-center",
-          closeButton: false,
-          draggable: false,
-          autoClose: false,
-        });
-
-        const res = await generateContentForSubtopic(
-          targetTopic.title,
-          targetSub.title,
-          { silent: true }
-        );
-        if (res.success) {
-          toast.dismiss(toastId);
-          setActiveTopic({
-            topicTitle: targetTopic.title,
-            subtopicTitle: targetSub.title,
-          });
-          setView("content");
-        } else {
-          toast.update(toastId, {
-            render: "Failed to generate content for the selected topic.",
-            type: "error",
-            isLoading: false,
-            autoClose: 3000,
-          });
-        }
       }
     },
-    [courseData, activeTopic, generateContentForSubtopic]
+    [courseData, activeTopic]
   );
 
   if (loading || !courseData) {
@@ -496,12 +491,21 @@ const CoursePage = () => {
                       </div>
                     )}
 
-                    <MarkdownRenderer
-                      content={
-                        content.theory ||
-                        "No theory available for this topic yet."
-                      }
-                    />
+                    {isGenerating && !content.theory ? (
+                      <div className="flex items-center justify-center py-12">
+                        <div className="flex flex-col items-center gap-3">
+                          <AiOutlineLoading className="animate-spin text-blue-600 dark:text-blue-400" size={40} />
+                          <p className="text-gray-600 dark:text-gray-400 font-medium">Generating content for you...</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <MarkdownRenderer
+                        content={
+                          content.theory ||
+                          "No theory available for this topic yet."
+                        }
+                      />
+                    )}
 
                     <div className="mt-8 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
                       <button

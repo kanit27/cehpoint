@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { mainname, subname, websiteURL } from "../../lib/constants";
+import { mainname, websiteURL } from "../../lib/constants";
 import axiosInstance from "../../lib/axios";
 import DarkModeToggle from "./DarkModeToggle";
 import LogoComponent from "./LogoComponent";
@@ -145,7 +145,6 @@ const Header: React.FC<HeaderProps> = ({ isHome = false, className }) => {
             <LogoComponent isDarkMode={theme} />
             <span className="flex flex-col">
               <h1 className="font-black text-2xl dark:text-white">{mainname}</h1>
-              <em className="text-sm font-semibold dark:text-white">{subname}</em>
             </span>
           </span>
         </Link>

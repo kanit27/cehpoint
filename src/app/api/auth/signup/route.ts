@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     // Generate JWT Token
     const token = jwt.sign(
       { userId: newUser._id, uid: newUser.uid },
-      process.env.JWT_SECRET || 'your_secret_key',
+      process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET || 'your_secret_key_should_be_in_env',
       { expiresIn: '30d' }
     );
 

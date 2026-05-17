@@ -36,11 +36,11 @@ export async function POST(req: NextRequest) {
     if (useUserApiKey && userApiKey) {
       const genAIuser = new GoogleGenerativeAI(userApiKey);
       model = genAIuser.getGenerativeModel({
-        model: "gemini-2.0-flash",
+        model: "gemma-4-26b-a4b-it",
         safetySettings,
       });
     } else {
-      model = genAI.getGenerativeModel({ model: "gemini-2.0-flash", safetySettings });
+      model = genAI.getGenerativeModel({ model: "gemma-4-26b-a4b-it", safetySettings });
     }
 
     const result = await model.generateContent(prompt);

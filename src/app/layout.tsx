@@ -31,17 +31,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         {/* You can add other global tags here if needed, like custom fonts or scripts */}
       </head>
-      <body className={inter.className}>
-        <ThemeProvider>
-          <SkillsProvider>
-            {children}
-            <ToastProvider />
-          </SkillsProvider>
-        </ThemeProvider>
+      <body className={inter.className} suppressHydrationWarning>
+        <div suppressHydrationWarning>
+          <ThemeProvider>
+            <SkillsProvider>
+              {children}
+              <ToastProvider />
+            </SkillsProvider>
+          </ThemeProvider>
+        </div>
       </body>
     </html>
   );

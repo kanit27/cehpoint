@@ -32,10 +32,16 @@ async function connectDB() {
     const opts = {
       bufferCommands: false,
     };
-    cached.promise = mongoose.connect(MONGODB_URI as string, opts).then((mongoose) => {
-      console.log("MongoDB Connected");
-      return mongoose;
-    });
+    cached.promise = mongoose.connect(MONGODB_URI as string, opts)
+      .then((mongoose) => {
+        console.log("MongoDB Connected");
+        return mongoose;
+      })
+      .catch((error) => {
+        console.error("MongoDB connection error:", error);
+        cached.promise = null; // Reset promise to allow retry
+        throw error;
+      });
   }
   cached.conn = await cached.promise;
   return cached.conn;
