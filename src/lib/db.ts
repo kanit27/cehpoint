@@ -1,11 +1,7 @@
 // lib/db.ts
 import mongoose from 'mongoose';
 
-// Ensure the MONGODB_URI is defined in your .env.local
 const MONGODB_URI = process.env.MONGODB_URI;
-if (!MONGODB_URI) {
-  throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
-}
 
 // Augment the global type to include _mongooseCache
 declare global {
@@ -24,6 +20,10 @@ if (!cached) {
 }
 
 async function connectDB() {
+  if (!MONGODB_URI) {
+    throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
+  }
+
   if (cached.conn) {
     return cached.conn;
   }

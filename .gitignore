@@ -39,3 +39,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+course-annotated.png
+course-content.png
+FIX_SUMMARY.md
+ISSUES_REPORT.md
+QUICK_FIX_REFERENCE.md
+signup-result.png
+dev-server.log
